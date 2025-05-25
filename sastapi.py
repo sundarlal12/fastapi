@@ -154,6 +154,44 @@ def insert_data(table_name: str, payload: List[Vulnerability]):
 #         db.close()
 
 
+# @app.post("/get/{table_name}")
+# def get_data(table_name: str, request: GetDataRequest):
+#     allowed_tables = [
+#         "dead_code_info",
+#         "docstring_info",
+#         "malicious_code_info",
+#         "owasp_security_info",
+#         "secrets_info",
+#         "smelly_code_info"
+#     ]
+#     if table_name not in allowed_tables:
+#         raise HTTPException(status_code=400, detail="Invalid table name.")
+
+#     db = get_db_connection()
+#     cursor = db.cursor(dictionary=True)
+#     try:
+#         cursor.execute(f"""
+#             SELECT * FROM {table_name}
+#             WHERE username = %s AND platform = %s AND repo_name = %s
+#         """, (request.username, request.platform, request.repo_name))
+
+#         result = cursor.fetchall()
+
+#         # Exclude 'email' from each row
+#         filtered_result = [
+#             {k: v for k, v in row.items() if k != "email"} for row in result
+#         ]
+
+#         return {
+#             "count": len(filtered_result),
+#             "results": filtered_result
+#         }
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+#     finally:
+#         cursor.close()
+#         db.close()
+
 @app.post("/get/{table_name}")
 def get_data(table_name: str, request: GetDataRequest):
     allowed_tables = [
@@ -165,7 +203,7 @@ def get_data(table_name: str, request: GetDataRequest):
         "smelly_code_info"
     ]
     if table_name not in allowed_tables:
-        raise HTTPException(status_code=400, detail="Invalid table name.")
+        raise HTTPException(status_code=400, detail="Invalid API call.")
 
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
@@ -182,8 +220,23 @@ def get_data(table_name: str, request: GetDataRequest):
             {k: v for k, v in row.items() if k != "email"} for row in result
         ]
 
+        # Count severities
+        severity_counts = {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "informational": 0
+        }
+
+        for row in result:
+            severity = (row.get("severity") or "").strip().lower()
+            if severity in severity_counts:
+                severity_counts[severity] += 1
+
         return {
             "count": len(filtered_result),
+            "severity_counts": severity_counts,
             "results": filtered_result
         }
     except Exception as e:
@@ -191,4 +244,3 @@ def get_data(table_name: str, request: GetDataRequest):
     finally:
         cursor.close()
         db.close()
-
