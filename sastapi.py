@@ -4,6 +4,7 @@ import mysql.connector
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
+from fastapi.middleware.cors import CORSMiddleware 
 
 # Load .env values
 load_dotenv()
@@ -17,6 +18,15 @@ DB_CONFIG = {
 }
 
 app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or replace with ['https://your-frontend.com']
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class Vulnerability(BaseModel):
     username: str
