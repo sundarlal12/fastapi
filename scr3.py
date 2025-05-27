@@ -203,7 +203,7 @@ def download_file(username, repo, path, token):
     return content
 
 def get_access_token(username):
-    url = f"https://sastcode-token.onrender.com/getToken"
+    url = f"{SITE_URL}/getToken"
     response = requests.post(url, json={"username": username}, headers={"Content-Type": "application/json"})
     response.raise_for_status()
     return response.json()['data']['client_access_token']

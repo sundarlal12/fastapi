@@ -15,4 +15,6 @@ services:
         fromDashboard: true
       - key: OPENAI_API_KEY
         fromDashboard: true
+      - key: SITE_URL
+        fromDashboard: true
 
