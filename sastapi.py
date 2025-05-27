@@ -211,7 +211,7 @@ def get_data(table_name: str, request: GetDataRequest):
         cursor.execute(f"""
             SELECT * FROM {table_name}
             WHERE username = %s AND platform = %s AND repo_name = %s AND branch = %s
-        """, (request.username, request.platform, request.repo_name))
+        """, (request.username, request.platform, request.repo_name , request.branch))
 
         result = cursor.fetchall()
 
