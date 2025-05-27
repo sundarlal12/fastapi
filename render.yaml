@@ -13,3 +13,6 @@ services:
         fromDashboard: true
       - key: DB_NAME
         fromDashboard: true
+      - key: OPENAI_API_KEY
+        fromDashboard: true
+
