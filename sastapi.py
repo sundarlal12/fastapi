@@ -48,6 +48,7 @@ class GetDataRequest(BaseModel):
     username: str
     platform: str
     repo_name: str
+    branch: str
 
 def get_db_connection():
     return mysql.connector.connect(**DB_CONFIG)
