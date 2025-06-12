@@ -100,6 +100,7 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
     #result = data["result"]
    
     result = data.get("result", data)
+    print(result)
 
     #repo_file_path = data["file_path"]  # e.g., "src/app.js"
     repo_file_path = data.get("file_path", "")

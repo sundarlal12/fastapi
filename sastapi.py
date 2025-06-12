@@ -37,7 +37,7 @@ app.add_middleware(
 
 ALLOWED_PLATFORMS = {"github", "gitlab", "bitbucket", "web", "other"}
 SCRIPT_MAP = {
-    "github": "scr3_threads.py",
+    "github": "scr3_threads2.py",
     "gitlab": "scr2.py",
     "bitbucket": "scr1.py",
     "other": "scr.py",
@@ -334,7 +334,9 @@ def get_data(table_name: str, request: GetDataRequest):
         "malicious_code_info",
         "owasp_security_info",
         "secrets_info",
-        "smelly_code_info"
+        "smelly_code_info",
+        "sca_info",
+        "infra_security_info"
     ]
     if table_name not in allowed_tables:
         raise HTTPException(status_code=400, detail="Invalid API call.")

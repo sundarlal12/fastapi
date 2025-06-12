@@ -3,7 +3,7 @@ review_template: |
   Analyze the provided source code and return a **valid JSON object** with categorized security and quality insights.
 
   ✅ The top-level JSON keys must include exactly the following:
-  - "secrets"  ⬅️ Should include all hardcoded keys, credentials, tokens, passwords, API secrets, SSH keys, certificates, etc.
+  - "secrets"
   - "owasp_security"
   - "cve_lookup"
   - "docstring"
@@ -22,13 +22,9 @@ review_template: |
   - `cve`: CVE ID (if applicable), e.g., "CVE-2025-12345"
   - `severity`: One of Low, Medium, High, or Critical
   - `short_description`: A short summary of the issue in 150 words atleast
-  - `bad_practice`: Not more than 100 words
-  - `vulnerable_code`: Not more than 100 words
   - `suggested_fix`: A recommended fix or mitigation. For docstring issues, generate a valid docstring in `/** ... */` format
   - `vulnerable_code`: The code that introduces the vulnerability
   - `patched_code`: The code after the vulnerability has been mitigated or fixed
-  - `owasp_2017`: OWASP 2017 category (if applicable)
-  - `owasp_2021`: OWASP 2021 category (if applicable)
 
   
   ✅ For `docstring`, use this pattern for suggested_fix:
@@ -56,24 +52,6 @@ review_template: |
   
   Ensure `RCE` and `Arbitrary File Upload` vulnerabilities are categorized under `"owasp_security"` if caused by poor validation or user input exposure, or under `"malicious_code"` if clearly exploitable backdoors or shells.
 
-  ✅ For `secrets`, identify hardcoded sensitive values such as:
-  - API Keys (e.g., AWS, Google, Azure, GitHub, Firebase)
-  - OAuth tokens, JWTs, bearer tokens
-  - SSH private/public keys, PGP keys, PEM certificates
-  - Hardcoded passwords or usernames
-  - Database connection strings or cloud provider credentials
-  - Slack or Discord webhook URLs
-  - Encryption keys, HMAC secrets, or any high-entropy string patterns
-  - Any environment variable usage with real values exposed (e.g., `API_KEY = "sk_test_..."`)
-
-  Each `secrets` issue must include:
-  - `line_number`: Line number with the hardcoded secret
-  - `vulnerability_type`: E.g., "Hardcoded AWS Key", "Exposed JWT Token"
-  - `severity`: Medium, High, or Critical depending on exposure
-  - `short_description`: Describe why this secret is sensitive and how it might be misused
-  - `bad_practice`: The exact line or snippet exposing the secret (with sensitive parts masked or obfuscated)
-  - `suggested_fix`: Recommend using environment variables or secret managers (e.g., AWS Secrets Manager, HashiCorp Vault)
-
   ✅ For `malicious_code`, focus on identifying:
   - Webshells or backdoors in any language (PHP, ASPX, JS, Java, JSP, Python, etc.)
   - Obfuscated or encoded code (e.g., base64, hex-encoded payloads, evals, dynamic execs)
@@ -92,41 +70,7 @@ review_template: |
   - `bad_practice` (the detected malicious code)
   - `good_practice` (a cleaned-up or safe alternative, or suggest removal)
 
-  ✅ Before returning output:
-  - Ensure the entire response is enclosed within `{}` braces
-  - Validate with a JSON linter
-  - Do not include trailing commas
-  - Escape all special characters in strings
-  - Make sure all nested structures are properly closed
-
-  ✅ In `vulnerable_code`, `bad_practice`, and other code fields:
-  - Always escape double quotes (`"`) with a backslash (`\"`)
-  - Escape newlines as `\\n` or keep them within proper triple-quotes if necessary
-  - Avoid writing unescaped backslashes (`\`) in paths or code
-
-  Limit multiline fields like `bad_practice`, `good_practice`, `vulnerable_code`, and `patched_code` to:
-  - a maximum of 10 lines, OR
-  - 100 words maximum
- 
-  🛡️ Strict Detection Rules:
-  - ❌ **Avoid false positives**:
-  - Do **not** flag SQLi if prepared statements, parameterized queries, or ORMs are used.
-  - Do **not** flag XSS if input is sanitized or output is properly escaped.
-  - Only flag vulnerabilities if user-controlled input flows unsanitized to a dangerous sink (e.g., SQL query, DOM injection, shell execution, HTTP request, file path).
-  - Avoid static, harmless patterns or internal config strings.
-
-  ✅ Docstring Detection:
-  - Detect classes, methods, or functions missing proper docstrings.
-  - Ignore inline comments or block comments not placed directly after `def` or `class`.
-  - A valid docstring must:
-  - Be in `"""` or `'''` format
-  - Start immediately after the `def` or `class` line
-  - Include a purpose, and (optionally) `@param`, `@returns`, or description tags
-
-  🚨 Ensure final output is VALID JSON only.
-  🚨 DO NOT break any braces or brackets. Use a JSON validator before returning.
-
-  ✅ Do not return markdown formatting, preambles, or explanation — **only the final Valid JSON object**.
+  ✅ Do not return markdown formatting, preambles, or explanation — **only the final JSON object**.
 
   ✅ Example output format:
   {
@@ -140,20 +84,17 @@ review_template: |
           "severity": "High",
           "short_description": "Unescaped user input used in SQL query.",
           "suggested_fix": "Use parameterized queries or an ORM to safely build queries.","vulnerable_code": "$query = 'SELECT * FROM users WHERE username = ' . $_GET['username'];",
-          "patched_code": "$stmt = $pdo->prepare('SELECT * FROM users WHERE username = :username');\n$stmt->execute(['username' => $_GET['username']]);",
-          "owasp_2017": "A1: Injection",
-          "owasp_2021": "A03: Injection"
+          "patched_code": "$stmt = $pdo->prepare('SELECT * FROM users WHERE username = :username');\n$stmt->execute(['username' => $_GET['username']]);"
         }
       ]
     },
     "docstring": {
       "./src/auth.js": [
         {
-         "short_description": "Missing docstring for method 'process_filter'.",
-         "suggested_fix": "\"\"\"\nProcesses input filters.\n\n@param filter: The filter input object\n@returns: True if valid, else False\n\"\"\"",
-         "bad_practice": "def process_filter(filter):\n    return filter is not None",
-         "good_practice": "def process_filter(filter):\n    \"\"\"\n    Processes input filters.\n\n    @param filter: The filter input object\n    @returns: True if valid, else False\n    \"\"\"\n    return filter is not None"
-          }
+          "line_number": 10,
+          "short_description": "Missing or incomplete documentation for function 'authenticateUser'.",
+          "suggested_fix": "/**\n * Authenticates a user.\n * @param {string} username - The user's login ID.\n * @param {string} password - The user's secret password.\n * @returns {boolean} Returns true if authentication is successful.\n */"
+        }
       ]
     },
      "smelly_code": {
@@ -167,13 +108,10 @@ review_template: |
           "short_description": "Variables `i` and `j` are implicitly declared as global.",
           "suggested_fix": "Declare all variables using let or const to avoid accidental globals and improve maintainability.",
           "bad_practice": "function f() {\n  i = 1; // Noncompliant: i is global\n  for (j = 0; j < array.length; j++) {\n    // ...\n  }\n}",
-          "good_practice": "function f() {\n  const i = 1;\n  for (let j = 0; j < array.length; j++) {\n    // ...\n  }\n}",
-          "owasp_2017": "A1: Injection",
-          "owasp_2021": "A03: Injection"
+          "good_practice": "function f() {\n  const i = 1;\n  for (let j = 0; j < array.length; j++) {\n    // ...\n  }\n}"
         }
       ]
     },
-
      "malicious_code": {
       "./wp-content/plugins/bad-plugin.php": [
         {
@@ -183,25 +121,11 @@ review_template: |
           "short_description": "Encoded payload that allows remote command execution.",
           "suggested_fix": "Remove this entire block of code or replace it with safe, validated functionality.",
           "bad_practice": "<?php eval(base64_decode('c3lzdGVtKCJ3aG8iKTs=')); ?>",
-          "good_practice": "// Malicious code removed. Never use eval with untrusted or encoded content.",
-          "owasp_2017": "A1: Injection",
-          "owasp_2021": "A03: Injection"
+          "good_practice": "// Malicious code removed. Never use eval with untrusted or encoded content."
         }
       ]
-    },
-
-    "secrets": {
-  "./config.js": [
-    {
-      "line_number": 5,
-      "vulnerability_type": "Hardcoded Firebase API Key",
-      "severity": "High",
-      "short_description": "The code contains a hardcoded Firebase API key, which may allow unauthorized access to backend services.",
-      "bad_practice": "const firebaseKey = \"AIzaSyA8Y9e...\";",
-      "suggested_fix": "Store this key in a secure environment variable or a secret manager and access it programmatically."
     }
-  ]
-  }
+
   }
 
   Now analyze the following code:
