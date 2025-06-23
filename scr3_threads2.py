@@ -549,7 +549,7 @@ def detect_ecosystem(filename):
 
 from datetime import datetime
 
-def save_sca_info(vulns, username, repo, branch, file_path, version, email=EMAIL, platform="github"):
+def save_sca_info(vulns, username, repo, branch, file_path, version,vuln_pack, email=EMAIL, platform="github"):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -585,17 +585,17 @@ def save_sca_info(vulns, username, repo, branch, file_path, version, email=EMAIL
                 username, email, platform, repo_name, file_path, line_number,
                 vulnerability_type, cwe, cve, severity, short_description,
                 suggested_fix, vulnerable_code, patched_code,
-                bad_practice, good_practice, issueId, branch, affected_version,
+                bad_practice, good_practice, issueId, branch, affected_version, vulnerable_package,
                 created_at
             ) VALUES (%s, %s, %s, %s, %s, NULL,
                       %s, %s, %s, %s, %s,
                       %s, NULL, NULL,
-                      NULL, NULL, %s, %s, %s,
+                      NULL, NULL, %s, %s, %s, %s,
                       NOW())
         """, (
             username, email, platform, repo, file_path,
             vuln_type, cwe, cve, severity, description,
-            suggested_fix, vuln.get("id"), branch, affected_versions
+            suggested_fix, vuln.get("id"), branch, affected_versions, vuln_pack
         ))
 
     conn.commit()
@@ -782,7 +782,7 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email, 
     import requests
 
     file_name = Path(file_path).name
-    print(f"🔎 email: {email}-------X----")
+    #print(f"🔎 email: {email}-------X----")
 
     print(f"🔎 Detecting ecosystem for file: {file_name}-------X----")
 
@@ -821,7 +821,8 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email, 
            
             #print(payload)
             data = query_osv_with_retry(payload)
-            print(f"🔎 email: {email}-------X----")
+            vuln_pack = f"{package_name}@{version}"
+            #print(f"🔎 email: {email}-------X----")
             
 
             print(data)
@@ -836,7 +837,8 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email, 
                     file_path=file_path,
                     version=version,
                     email=EMAIL,
-                    platform=platform
+                    platform=platform,
+                    vuln_pack=vuln_pack
                 )
         except Exception as e:
             print(f"❌ Error querying OSV for {package_name}@{version}: {e}")
