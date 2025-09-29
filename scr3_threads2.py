@@ -11,6 +11,7 @@ import json
 import urllib.parse
 from json.decoder import JSONDecodeError
 
+import fnmatch
 import requests
 import base64
 import mysql.connector
@@ -57,6 +58,32 @@ CATEGORY_TABLE_MAP = {
 
 ALLOWED_EXTENSIONS = {
     '.py', '.js', '.java', '.cpp', '.php', '.html', '.ts', '.rb', '.go', '.c', '.rs','.json', '.txt', '.xml'
+}
+
+EXCLUDED_PATTERNS = {
+    "jquery*.js",    # jquery.js, jquery.min.js, jquery-3.6.0.js ...
+    "*.min.js",      # any minified JS
+    "*.bundle.js",   # bundles
+
+    "vendor/*",      # anything in vendor folder
+    "node_modules/*",# skip node_modules entirely if present
+  
+
+
+
+    "react*.js",
+    "angular*.js",
+    "vue*.js",
+    "bootstrap*.js",
+    "popper*.js",
+
+    # Common distribution/build/vendor directories (path-aware)
+    "node_modules/*",
+    "vendor/*",
+    "dist/*",
+    "build/*",
+    "out/*",
+
 }
 
 
@@ -460,7 +487,7 @@ def get_valid_branch(username, repo, token, preferred=None):
 #     tree = response.json().get("tree", [])
 #     return [item for item in tree if item["type"] == "blob" and Path(item["path"]).suffix in ALLOWED_EXTENSIONS]
 
-
+"""
 def get_repo_files(username, repo, branch, token):
     url = f"https://api.github.com/repos/{username}/{repo}/git/trees/{branch}?recursive=1"
     headers = {"Authorization": f"Bearer {token}"}
@@ -485,6 +512,62 @@ def get_repo_files(username, repo, branch, token):
             filtered_files.append(item)
 
     return filtered_files
+"""
+
+
+
+def get_repo_files(username, repo, branch, token):
+    url = f"https://api.github.com/repos/{username}/{repo}/git/trees/{branch}?recursive=1"
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
+    tree = response.json().get("tree", [])
+
+    filtered_files = []
+    for item in tree:
+        if item.get("type") != "blob":
+            continue
+
+        file_path = item.get("path", "")
+        suffix = Path(file_path).suffix.lower()     # normalized extension (e.g. ".js")
+        filename = Path(file_path).name
+        lower_path = file_path.lower()
+        lower_name = filename.lower()
+
+        # 1) Only allow special dependency files if they are in SPECIAL_FILES
+        if suffix in {'.json', '.txt', '.xml'}:
+            if filename in SPECIAL_FILES:
+                filtered_files.append(item)
+            # else: skip other .json/.txt/.xml files
+            continue
+
+        # 2) Only consider files with allowed extensions
+        if suffix not in ALLOWED_EXTENSIONS:
+            continue
+
+        # 3) Exclude files that match any EXCLUDED_PATTERNS (unless they are SPECIAL_FILES)
+        excluded = False
+        for pat in EXCLUDED_PATTERNS:
+            p = pat.lower()
+            # If pattern contains a slash treat it as a path pattern, otherwise match filename and path
+            if "/" in p:
+                if fnmatch.fnmatch(lower_path, p):
+                    excluded = True
+                    break
+            else:
+                if fnmatch.fnmatch(lower_name, p) or fnmatch.fnmatch(lower_path, p):
+                    excluded = True
+                    break
+
+        if excluded:
+            # skip excluded file
+            continue
+
+        # 4) Passed all checks -> include
+        filtered_files.append(item)
+
+    return filtered_files
+
 
 def download_file(username, repo, path, token, branch="main"):
     url = f"https://api.github.com/repos/{username}/{repo}/contents/{path}?ref={branch}"
