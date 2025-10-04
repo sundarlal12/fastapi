@@ -475,7 +475,7 @@ def get_valid_branch(username, repo, token, preferred=None):
     for branch in branches:
         try:
             url = f"https://gitlab.com/api/v4/projects/{project}/repository/branches/{branch}"
-            headers = {"PRIVATE-TOKEN": token}
+            headers = { "Authorization": f"Bearer {token}", "Accept": "application/json",}
             response = requests.get(url, headers=headers, timeout=15)
             if response.status_code == 200:
                 return branch
@@ -527,7 +527,8 @@ def get_repo_files(username, repo, branch, token):
 
     # GitLab repository tree endpoint — return recursive tree for the ref (branch)
     url = f"https://gitlab.com/api/v4/projects/{project}/repository/tree"
-    headers = {"PRIVATE-TOKEN": token}
+    headers = { "Authorization": f"Bearer {token}","Accept": "application/json",}
+
     params = {"ref": branch, "recursive": "true", "per_page": 100}
 
     all_items = []
@@ -597,18 +598,21 @@ def get_repo_files(username, repo, branch, token):
 
 
 def download_file(username, repo, path, token, branch="main"):
-    # GitLab requires project and file path to be URL-encoded
+    # URL-encode project (username/repo) and the file path
     project = urllib.parse.quote_plus(f"{username}/{repo}")
-    file_path = urllib.parse.quote_plus(path)
+    file_path = urllib.parse.quote_plus(path, safe='')
 
     url = f"https://gitlab.com/api/v4/projects/{project}/repository/files/{file_path}?ref={branch}"
-    headers = {"PRIVATE-TOKEN": token}
-    
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json",
+    }
+
     response = requests.get(url, headers=headers, timeout=20)
     response.raise_for_status()
     data = response.json()
 
-    # GitLab returns base64 content
+    # GitLab returns base64-encoded "content"
     content = base64.b64decode(data["content"]).decode("utf-8", errors="ignore")
     return content
 
