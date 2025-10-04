@@ -365,7 +365,7 @@ def analyze_code(code_content, prompt_template, github_username="", repo_name=""
     return {"status": "chunks_processed"}
 
 
-def categorize_and_save(data, github_username, repo_name, branch_name="main", email=EMAIL, platform="GitHub"):
+def categorize_and_save(data, github_username, repo_name, branch_name="main", email=EMAIL, platform="gitlab"):
 
     #result = data["result"]
    
@@ -577,23 +577,6 @@ def download_file(username, repo, path, token, branch="main"):
     content = base64.b64decode(response.json()["content"]).decode("utf-8", errors="ignore")
     return content
 
-# def get_access_token(username):
-#     url = f"{SITE_URL}/getToken"
-#     response = requests.post(url, json={"username": username}, headers={"Content-Type": "application/json"}, timeout=10)
-#     response.raise_for_status()
-#     return response.json()['data']['client_access_token']
-
-# def get_access_token(username):
-#     url = f"{SITE_URL}/getToken"
-#     response = requests.post(
-#         url,
-#         json={"username": username},
-#         headers={"Content-Type": "application/json"},
-#         timeout=10
-#     )
-#     response.raise_for_status()
-#     data = response.json()['data']
-#     return data['client_access_token'], data.get('email', '')
 
 def get_access_token(username):
     global EMAIL, TOKEN  # use global to modify them
@@ -601,7 +584,7 @@ def get_access_token(username):
     url = f"{SITE_URL}/getToken"
     response = requests.post(
         url,
-        json={"username": username,"platform":"github"},
+        json={"username": username,"platform":"gitlab"},
         headers={"Content-Type": "application/json"},
         timeout=10
     )
@@ -632,7 +615,7 @@ def detect_ecosystem(filename):
 
 from datetime import datetime
 
-def save_sca_info(vulns, username, repo, branch, file_path, version,vuln_pack, email=EMAIL, platform="github"):
+def save_sca_info(vulns, username, repo, branch, file_path, version,vuln_pack, email=EMAIL, platform="gitlab"):
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -698,7 +681,7 @@ def save_sca_info(vulns, username, repo, branch, file_path, version,vuln_pack, e
 
 
 """
-def run_dependency_scan(file_path, file_content, username, repo, branch, email=None, platform="github"):
+def run_dependency_scan(file_path, file_content, username, repo, branch, email=None, platform="gitlab"):
     dependencies = []
     ecosystem = detect_ecosystem(file_path)
 
@@ -785,7 +768,7 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email=N
         print(f"✅ No vulnerabilities found in {file_path}")
 """
 """
-def run_dependency_scan(file_path, file_content, username, repo, branch, email=None, platform="github"):
+def run_dependency_scan(file_path, file_content, username, repo, branch, email=None, platform="gitlab"):
     from pathlib import Path
     file_name = Path(file_path).name
     print(f"🔎 Detecting ecosystem for file: {file_name}-------X----")
@@ -827,7 +810,7 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email=N
 
             if "vulns" in data:
                 
-                save_sca_info(data["vulns"], username, repo, branch, file_path, version,email, platform="github")
+                save_sca_info(data["vulns"], username, repo, branch, file_path, version,email, platform="gitlab")
         except Exception as e:
             print(f"❌ Error querying OSV for {package_name}@{version}: {e}")
 """
@@ -860,7 +843,7 @@ def query_osv_with_retry(payload):
 
 
 
-def run_dependency_scan(file_path, file_content, username, repo, branch, email, platform="github"):
+def run_dependency_scan(file_path, file_content, username, repo, branch, email, platform="gitlab"):
     from pathlib import Path
     import requests
 
@@ -975,7 +958,7 @@ def process_file(file, username, repo, branch, token, prompt_template,email=EMAI
             # ✅ Run Dependency Scan First (for known files)
             if os.path.basename(path) in ["package.json", "requirements.txt", "pom.xml"]:
                 print(f"🔍 Running SCA for: {path}")
-                run_dependency_scan(path,content, username, repo, branch,email=email,platform="GitHub")
+                run_dependency_scan(path,content, username, repo, branch,email=email,platform="gitlab")
                 
                 continue
             
