@@ -38,7 +38,7 @@ app.add_middleware(
 ALLOWED_PLATFORMS = {"github", "gitlab", "bitbucket", "web", "other"}
 SCRIPT_MAP = {
     "github": "scr3_threads2.py",
-    "gitlab": "scr2.py",
+    "gitlab": "scr3_threads_gitlab.py",
     "bitbucket": "scr1.py",
     "other": "scr.py",
     "web": "scr.py"

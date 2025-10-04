@@ -468,15 +468,20 @@ def get_valid_branch(username, repo, token, preferred=None):
     branches = ["main", "master"]
     if preferred and preferred not in branches:
         branches.insert(0, preferred)
+
+    # GitLab needs project path URL encoded
+    project = urllib.parse.quote_plus(f"{username}/{repo}")
+
     for branch in branches:
         try:
-            url = f"https://api.github.com/repos/{username}/{repo}/branches/{branch}"
-            headers = {"Authorization": f"Bearer {token}"}
+            url = f"https://gitlab.com/api/v4/projects/{project}/repository/branches/{branch}"
+            headers = {"PRIVATE-TOKEN": token}
             response = requests.get(url, headers=headers, timeout=15)
             if response.status_code == 200:
                 return branch
         except requests.RequestException as e:
             print(f"⚠️ Branch check failed: {e}")
+
     raise Exception("❌ No valid branch found")
 
 # def get_repo_files(username, repo, branch, token):
@@ -517,11 +522,33 @@ def get_repo_files(username, repo, branch, token):
 
 
 def get_repo_files(username, repo, branch, token):
-    url = f"https://api.github.com/repos/{username}/{repo}/git/trees/{branch}?recursive=1"
-    headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(url, headers=headers, timeout=20)
-    response.raise_for_status()
-    tree = response.json().get("tree", [])
+    # GitLab expects the project path URL-encoded
+    project = urllib.parse.quote_plus(f"{username}/{repo}")
+
+    # GitLab repository tree endpoint — return recursive tree for the ref (branch)
+    url = f"https://gitlab.com/api/v4/projects/{project}/repository/tree"
+    headers = {"PRIVATE-TOKEN": token}
+    params = {"ref": branch, "recursive": "true", "per_page": 100}
+
+    all_items = []
+    page = 1
+
+    # GitLab paginates results — iterate pages until empty
+    while True:
+        params["page"] = page
+        response = requests.get(url, headers=headers, params=params, timeout=20)
+        response.raise_for_status()
+        items = response.json()  # GitLab returns a list of entries for this endpoint
+        if not items:
+            break
+        all_items.extend(items)
+        # if fewer than per_page returned, we are done
+        if len(items) < params["per_page"]:
+            break
+        page += 1
+
+    # GitLab tree items use 'type' ('blob' for file) and 'path' for full path
+    tree = all_items
 
     filtered_files = []
     for item in tree:
@@ -570,31 +597,75 @@ def get_repo_files(username, repo, branch, token):
 
 
 def download_file(username, repo, path, token, branch="main"):
-    url = f"https://api.github.com/repos/{username}/{repo}/contents/{path}?ref={branch}"
-    headers = {"Authorization": f"Bearer {token}"}
+    # GitLab requires project and file path to be URL-encoded
+    project = urllib.parse.quote_plus(f"{username}/{repo}")
+    file_path = urllib.parse.quote_plus(path)
+
+    url = f"https://gitlab.com/api/v4/projects/{project}/repository/files/{file_path}?ref={branch}"
+    headers = {"PRIVATE-TOKEN": token}
+    
     response = requests.get(url, headers=headers, timeout=20)
     response.raise_for_status()
-    content = base64.b64decode(response.json()["content"]).decode("utf-8", errors="ignore")
+    data = response.json()
+
+    # GitLab returns base64 content
+    content = base64.b64decode(data["content"]).decode("utf-8", errors="ignore")
     return content
 
 
-def get_access_token(username):
-    global EMAIL, TOKEN  # use global to modify them
 
+def get_access_token(username, platform="gitlab"):
+    """
+    Fetch access token for a given username & platform from SITE_URL/getToken
+    Retries on 500/timeout/network errors up to MAX_RETRIES times.
+    """
+    global EMAIL, TOKEN
     url = f"{SITE_URL}/getToken"
-    response = requests.post(
-        url,
-        json={"username": username,"platform":"gitlab"},
-        headers={"Content-Type": "application/json"},
-        timeout=10
-    )
-    response.raise_for_status()
-    data = response.json().get('data', {})
+    payload = {"username": username, "platform": platform}
+    headers = {"Content-Type": "application/json"}
 
-    TOKEN = data.get('client_access_token', '')
-    EMAIL = data.get('email', '')
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            print(f"[get_access_token] Attempt {attempt}, status={response.status_code}")
 
-    return TOKEN
+            # Retry on server errors
+            if response.status_code >= 500:
+                raise requests.exceptions.HTTPError(f"Server error {response.status_code}: {response.text}")
+
+            response.raise_for_status()
+            data = response.json().get("data", {})
+
+            TOKEN = data.get("client_access_token", "")
+            EMAIL = data.get("email", "")
+
+            if not TOKEN:
+                raise ValueError("No client_access_token in response")
+
+            return TOKEN
+        except Exception as e:
+            print(f"⚠️ get_access_token error (attempt {attempt}): {e}")
+            if attempt == MAX_RETRIES:
+                raise  # give up after retries
+            time.sleep(RETRY_DELAY * attempt)
+
+# def get_access_token(username):
+#     global EMAIL, TOKEN  # use global to modify them
+
+#     url = f"{SITE_URL}/getToken"
+#     response = requests.post(
+#         url,
+#         json={"username": username,"platform":"gitlab"},
+#         headers={"Content-Type": "application/json"},
+#         timeout=10
+#     )
+#     response.raise_for_status()
+#     data = response.json().get('data', {})
+
+#     TOKEN = data.get('client_access_token', '')
+#     EMAIL = data.get('email', '')
+
+#     return TOKEN
 
 
 
