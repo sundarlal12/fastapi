@@ -27,6 +27,10 @@ import time
 import random
 
 # Load .env variables
+
+MAX_RETRIES = 4
+RETRY_DELAY = 3  # 
+
 load_dotenv()
 SITE_URL = os.getenv("SITE_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -595,23 +599,63 @@ def download_file(username, repo, path, token, branch="main"):
 #     data = response.json()['data']
 #     return data['client_access_token'], data.get('email', '')
 
-def get_access_token(username):
-    global EMAIL, TOKEN  # use global to modify them
+# def get_access_token(username):
+#     global EMAIL, TOKEN  # use global to modify them
 
+#     url = f"{SITE_URL}/getToken"
+#     response = requests.post(
+#         url,
+#         json={"username": username,"platform":"github"},
+#         headers={"Content-Type": "application/json"},
+#         timeout=10
+#     )
+#     response.raise_for_status()
+#     data = response.json().get('data', {})
+
+#     TOKEN = data.get('client_access_token', '')
+#     EMAIL = data.get('email', '')
+    
+
+#     return TOKEN
+
+
+
+
+def get_access_token(username, platform="github"):
+    """
+    Fetch access token for a given username & platform from SITE_URL/getToken
+    Retries on 500/timeout/network errors up to MAX_RETRIES times.
+    """
+    global EMAIL, TOKEN
     url = f"{SITE_URL}/getToken"
-    response = requests.post(
-        url,
-        json={"username": username,"platform":"github"},
-        headers={"Content-Type": "application/json"},
-        timeout=10
-    )
-    response.raise_for_status()
-    data = response.json().get('data', {})
+    payload = {"username": username, "platform": platform}
+    headers = {"Content-Type": "application/json"}
 
-    TOKEN = data.get('client_access_token', '')
-    EMAIL = data.get('email', '')
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            print(f"[get_access_token] Attempt {attempt}, status={response.status_code}")
 
-    return TOKEN
+            # Retry on server errors
+            if response.status_code >= 500:
+                raise requests.exceptions.HTTPError(f"Server error {response.status_code}: {response.text}")
+
+            response.raise_for_status()
+            data = response.json().get("data", {})
+
+            TOKEN = data.get("client_access_token", "")
+            EMAIL = data.get("email", "")
+
+            if not TOKEN:
+                raise ValueError("No client_access_token in response")
+
+            return TOKEN
+        except Exception as e:
+            print(f"⚠️ get_access_token error (attempt {attempt}): {e}")
+            if attempt == MAX_RETRIES:
+                raise  # give up after retries
+            time.sleep(RETRY_DELAY * attempt)
+
 
 
 
