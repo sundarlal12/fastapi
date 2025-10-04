@@ -39,7 +39,7 @@ ALLOWED_PLATFORMS = {"github", "gitlab", "bitbucket", "web", "other"}
 SCRIPT_MAP = {
     "github": "scr3_threads2.py",
     "gitlab": "scr3_threads_gitlab.py",
-    "bitbucket": "scr1.py",
+    "bitbucket": "scr3_threads_bitbucket.py",
     "other": "scr.py",
     "web": "scr.py"
 }
