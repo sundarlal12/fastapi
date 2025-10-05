@@ -521,43 +521,30 @@ def get_repo_files(username, repo, branch, token):
 
 
 
-def get_repo_files(username, repo, branch, token):
-    # GitLab expects the project path URL-encoded
-    project = urllib.parse.quote_plus(f"{username}/{repo}")
-
-    # GitLab repository tree endpoint — return recursive tree for the ref (branch)
-    url = f"https://gitlab.com/api/v4/projects/{project}/repository/tree"
-    headers = { "Authorization": f"Bearer {token}","Accept": "application/json",}
-
-    params = {"ref": branch, "recursive": "true", "per_page": 100}
-
-    all_items = []
-    page = 1
-
-    # GitLab paginates results — iterate pages until empty
-    while True:
-        params["page"] = page
-        response = requests.get(url, headers=headers, params=params, timeout=20)
-        response.raise_for_status()
-        items = response.json()  # GitLab returns a list of entries for this endpoint
-        if not items:
-            break
-        all_items.extend(items)
-        # if fewer than per_page returned, we are done
-        if len(items) < params["per_page"]:
-            break
-        page += 1
-
-    # GitLab tree items use 'type' ('blob' for file) and 'path' for full path
-    tree = all_items
-
+def get_repo_files(workspace, repo, branch, token):
+    """
+    Get filtered files from a Bitbucket repository
+    
+    Args:
+        workspace: Bitbucket workspace (username or team name)
+        repo: Repository name
+        branch: Branch name
+        token: Bitbucket app password or access token
+    """
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
+    data = response.json()
+    
     filtered_files = []
-    for item in tree:
-        if item.get("type") != "blob":
+    for item in data.get("values", []):
+        if item.get("type") != "commit_file":
             continue
 
         file_path = item.get("path", "")
-        suffix = Path(file_path).suffix.lower()     # normalized extension (e.g. ".js")
+        suffix = Path(file_path).suffix.lower()
         filename = Path(file_path).name
         lower_path = file_path.lower()
         lower_name = filename.lower()
@@ -596,25 +583,83 @@ def get_repo_files(username, repo, branch, token):
 
     return filtered_files
 
+def download_file(workspace, repo, path, token, branch="main"):
+    """
+    Download file content from Bitbucket repository
+    
+    Args:
+        workspace: Bitbucket workspace (username or team name)
+        repo: Repository name
+        path: File path in repository
+        token: Bitbucket app password or access token
+        branch: Branch name (default: "main")
+    """
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/{path}"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
+    
+    # Bitbucket returns raw file content directly, no base64 encoding
+    return response.text
 
-def download_file(username, repo, path, token, branch="main"):
-    # URL-encode project (username/repo) and the file path
-    project = urllib.parse.quote_plus(f"{username}/{repo}")
-    file_path = urllib.parse.quote_plus(path, safe='')
+# Alternative version using Bitbucket's download endpoint (if raw content doesn't work)
+def download_file_alternative(workspace, repo, path, token, branch="main"):
+    """
+    Alternative method to download file using Bitbucket's download endpoint
+    """
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/downloads/{path}"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
+    return response.text
 
-    url = f"https://gitlab.com/api/v4/projects/{project}/repository/files/{file_path}?ref={branch}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/json",
-    }
-
+# Helper function to get repository branches
+def get_repo_branches(workspace, repo, token):
+    """
+    Get list of branches for a repository
+    """
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/refs/branches"
+    headers = {"Authorization": f"Bearer {token}"}
+    
     response = requests.get(url, headers=headers, timeout=20)
     response.raise_for_status()
     data = response.json()
+    
+    return [branch["name"] for branch in data.get("values", [])]
 
-    # GitLab returns base64-encoded "content"
-    content = base64.b64decode(data["content"]).decode("utf-8", errors="ignore")
-    return content
+# Helper function to get repository information
+def get_repo_info(workspace, repo, token):
+    """
+    Get basic repository information
+    """
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
+    return response.json()
+
+
+# def download_file(username, repo, path, token, branch="main"):
+#     # URL-encode project (username/repo) and the file path
+#     project = urllib.parse.quote_plus(f"{username}/{repo}")
+#     file_path = urllib.parse.quote_plus(path, safe='')
+
+#     url = f"https://gitlab.com/api/v4/projects/{project}/repository/files/{file_path}?ref={branch}"
+#     headers = {
+#         "Authorization": f"Bearer {token}",
+#         "Accept": "application/json",
+#     }
+
+#     response = requests.get(url, headers=headers, timeout=20)
+#     response.raise_for_status()
+#     data = response.json()
+
+#     # GitLab returns base64-encoded "content"
+#     content = base64.b64decode(data["content"]).decode("utf-8", errors="ignore")
+#     return content
 
 
 
