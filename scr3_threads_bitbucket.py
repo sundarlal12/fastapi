@@ -852,6 +852,7 @@ def get_repo_files(workspace, repo, branch, token):
     # Build initial URL (branch must be a string, not a tuple)
     base = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{quote(branch)}"
     url = base
+    print(url)
     params = {"pagelen": 100}
     all_items = []
 
