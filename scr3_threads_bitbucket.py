@@ -6,10 +6,6 @@ import sys
 import os
 import urllib.parse
 
-import subprocess
-import tempfile
-
-import shutil
 import re
 import json
 
@@ -644,478 +640,126 @@ def get_valid_branch(username, repo, token, branch_arg=None, preferred=None):
 
 
 
-# def get_repo_files(username, repo, branch, token):
-#     url = f"https://api.github.com/repos/{username}/{repo}/git/trees/{branch}?recursive=1"
-#     headers = {"Authorization": f"Bearer {token}"}
-#     response = requests.get(url, headers=headers, timeout=20)
-#     response.raise_for_status()
-#     tree = response.json().get("tree", [])
-#     return [item for item in tree if item["type"] == "blob" and Path(item["path"]).suffix in ALLOWED_EXTENSIONS]
-
-"""
-def get_repo_files(username, repo, branch, token):
-    url = f"https://api.github.com/repos/{username}/{repo}/git/trees/{branch}?recursive=1"
+def get_repo_files(workspace, repo, branch, token):
+    """
+    Get filtered files from a Bitbucket repository
+    
+    Args:
+        workspace: Bitbucket workspace (username or team name)
+        repo: Repository name
+        branch: Branch name
+        token: Bitbucket app password or access token
+    """
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/"
     headers = {"Authorization": f"Bearer {token}"}
+    
     response = requests.get(url, headers=headers, timeout=20)
     response.raise_for_status()
-    tree = response.json().get("tree", [])
-
+    data = response.json()
+    
     filtered_files = []
-    for item in tree:
-        if item["type"] != "blob":
+    for item in data.get("values", []):
+        if item.get("type") != "commit_file":
             continue
 
-        file_path = item["path"]
-        suffix = Path(file_path).suffix
+        file_path = item.get("path", "")
+        suffix = Path(file_path).suffix.lower()
         filename = Path(file_path).name
+        lower_path = file_path.lower()
+        lower_name = filename.lower()
 
-        # Only allow .json, .txt, .xml if they're special dependency files
+        # 1) Only allow special dependency files if they are in SPECIAL_FILES
         if suffix in {'.json', '.txt', '.xml'}:
             if filename in SPECIAL_FILES:
                 filtered_files.append(item)
-        elif suffix in ALLOWED_EXTENSIONS:
-            filtered_files.append(item)
+            # else: skip other .json/.txt/.xml files
+            continue
+
+        # 2) Only consider files with allowed extensions
+        if suffix not in ALLOWED_EXTENSIONS:
+            continue
+
+        # 3) Exclude files that match any EXCLUDED_PATTERNS (unless they are SPECIAL_FILES)
+        excluded = False
+        for pat in EXCLUDED_PATTERNS:
+            p = pat.lower()
+            # If pattern contains a slash treat it as a path pattern, otherwise match filename and path
+            if "/" in p:
+                if fnmatch.fnmatch(lower_path, p):
+                    excluded = True
+                    break
+            else:
+                if fnmatch.fnmatch(lower_name, p) or fnmatch.fnmatch(lower_path, p):
+                    excluded = True
+                    break
+
+        if excluded:
+            # skip excluded file
+            continue
+
+        # 4) Passed all checks -> include
+        filtered_files.append(item)
 
     return filtered_files
-"""
-
-
-
-# def get_repo_files(username, repo, branch, token):
-#     # GitLab expects the project path URL-encoded
-#     project = urllib.parse.quote_plus(f"{username}/{repo}")
-
-#     # GitLab repository tree endpoint — return recursive tree for the ref (branch)
-#     url = f"https://gitlab.com/api/v4/projects/{project}/repository/tree"
-#     headers = { "Authorization": f"Bearer {token}","Accept": "application/json",}
-
-#     params = {"ref": branch, "recursive": "true", "per_page": 100}
-
-#     all_items = []
-#     page = 1
-
-#     # GitLab paginates results — iterate pages until empty
-#     while True:
-#         params["page"] = page
-#         response = requests.get(url, headers=headers, params=params, timeout=20)
-#         response.raise_for_status()
-#         items = response.json()  # GitLab returns a list of entries for this endpoint
-#         if not items:
-#             break
-#         all_items.extend(items)
-#         # if fewer than per_page returned, we are done
-#         if len(items) < params["per_page"]:
-#             break
-#         page += 1
-
-#     # GitLab tree items use 'type' ('blob' for file) and 'path' for full path
-#     tree = all_items
-
-#     filtered_files = []
-#     for item in tree:
-#         if item.get("type") != "blob":
-#             continue
-
-#         file_path = item.get("path", "")
-#         suffix = Path(file_path).suffix.lower()     # normalized extension (e.g. ".js")
-#         filename = Path(file_path).name
-#         lower_path = file_path.lower()
-#         lower_name = filename.lower()
-
-#         # 1) Only allow special dependency files if they are in SPECIAL_FILES
-#         if suffix in {'.json', '.txt', '.xml'}:
-#             if filename in SPECIAL_FILES:
-#                 filtered_files.append(item)
-#             # else: skip other .json/.txt/.xml files
-#             continue
-
-#         # 2) Only consider files with allowed extensions
-#         if suffix not in ALLOWED_EXTENSIONS:
-#             continue
-
-#         # 3) Exclude files that match any EXCLUDED_PATTERNS (unless they are SPECIAL_FILES)
-#         excluded = False
-#         for pat in EXCLUDED_PATTERNS:
-#             p = pat.lower()
-#             # If pattern contains a slash treat it as a path pattern, otherwise match filename and path
-#             if "/" in p:
-#                 if fnmatch.fnmatch(lower_path, p):
-#                     excluded = True
-#                     break
-#             else:
-#                 if fnmatch.fnmatch(lower_name, p) or fnmatch.fnmatch(lower_path, p):
-#                     excluded = True
-#                     break
-
-#         if excluded:
-#             # skip excluded file
-#             continue
-
-#         # 4) Passed all checks -> include
-#         filtered_files.append(item)
-
-#     return filtered_files
-
-# def get_repo_files(username, repo, branch, token):
-#     # Bitbucket API: list repository files for a given branch (paginated)
-#     url = f"https://api.bitbucket.org/2.0/repositories/{username}/{repo}/src/{branch}"
-#     headers = { "Authorization": f"Bearer {token}", "Accept": "application/json", }
-
-#     params = {"pagelen": 100}
-
-#     all_items = []
-
-#     # Bitbucket returns paginated responses with 'values' and optional 'next' link
-#     while True:
-#         response = requests.get(url, headers=headers, params=params, timeout=20)
-#         response.raise_for_status()
-#         data = response.json()
-#         values = data.get("values", [])
-
-#         # Normalize Bitbucket entries to the structure your filter expects:
-#         # - files -> type 'blob'
-#         # - include 'path' key
-#         normalized = []
-#         for v in values:
-#             vtype = v.get("type", "").lower()
-#             # Bitbucket uses 'commit_file' or 'file' for file entries; directories use 'commit_directory' etc.
-#             if vtype in ("commit_file", "file"):
-#                 normalized.append({"type": "blob", "path": v.get("path")})
-#             else:
-#                 # keep non-file entries too (they will be filtered out later)
-#                 normalized.append({"type": v.get("type", ""), "path": v.get("path")})
-
-#         if not normalized:
-#             break
-
-#         all_items.extend(normalized)
-
-#         # follow pagination 'next' if present
-#         next_url = data.get("next")
-#         if not next_url:
-#             break
-#         # for subsequent requests, use the full next URL and clear params
-#         url = next_url
-#         params = None
-
-#     # GitLab tree items use 'type' ('blob' for file) and 'path' for full path
-#     tree = all_items
-
-#     filtered_files = []
-#     for item in tree:
-#         if item.get("type") != "blob":
-#             continue
-
-#         file_path = item.get("path", "")
-#         suffix = Path(file_path).suffix.lower()     # normalized extension (e.g. ".js")
-#         filename = Path(file_path).name
-#         lower_path = file_path.lower()
-#         lower_name = filename.lower()
-
-#         # 1) Only allow special dependency files if they are in SPECIAL_FILES
-#         if suffix in {'.json', '.txt', '.xml'}:
-#             if filename in SPECIAL_FILES:
-#                 filtered_files.append(item)
-#             # else: skip other .json/.txt/.xml files
-#             continue
-
-#         # 2) Only consider files with allowed extensions
-#         if suffix not in ALLOWED_EXTENSIONS:
-#             continue
-
-#         # 3) Exclude files that match any EXCLUDED_PATTERNS (unless they are SPECIAL_FILES)
-#         excluded = False
-#         for pat in EXCLUDED_PATTERNS:
-#             p = pat.lower()
-#             # If pattern contains a slash treat it as a path pattern, otherwise match filename and path
-#             if "/" in p:
-#                 if fnmatch.fnmatch(lower_path, p):
-#                     excluded = True
-#                     break
-#             else:
-#                 if fnmatch.fnmatch(lower_name, p) or fnmatch.fnmatch(lower_path, p):
-#                     excluded = True
-#                     break
-
-#         if excluded:
-#             # skip excluded file
-#             continue
-
-#         # 4) Passed all checks -> include
-#         filtered_files.append(item)
-
-#     return filtered_files
-
-
-# def get_repo_files(workspace, repo, branch, token):
-#     """
-#     Returns list of normalized items from Bitbucket src endpoint:
-#       {'type':'blob','path':'...'} for files
-#     Handles pagination (follows 'next').
-#     """
-#     # Build initial URL (branch must be a string, not a tuple)
-#     base = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{quote(branch)}"
-#     url = base
-#     print(url)
-#     params = {"pagelen": 200}
-#     all_items = []
-
-#     while True:
-#         # Use basic auth first if possible
-#         resp = _request_with_fallback(url, workspace if False else None, token, params=params, timeout=20) \
-#                if False else _request_with_fallback(url, None, token, params=params, timeout=20)
-#         # Explanation: we call _request_with_fallback without a username here; fallback uses Bearer.
-#         # If you prefer Basic (username+app-password) for this call, pass username instead of None.
-#         # For simplicity we prefer bearer here. If your token is an app password, both methods work.
-#         try:
-#             resp.raise_for_status()
-#         except requests.HTTPError as e:
-#             # surface useful message
-#             if resp.status_code in (401, 403):
-#                 raise Exception(f"Auth/Permission error ({resp.status_code}). Check credentials. Body: {resp.text[:300]}")
-#             if resp.status_code == 404:
-#                 raise Exception(f"Not found (404). Verify workspace '{workspace}', repo '{repo}', and branch '{branch}'.")
-#             raise
-
-#         data = resp.json()
-#         values = data.get("values", [])
-
-#         # Normalize entries
-#         for v in values:
-#             vtype = (v.get("type") or "").lower()
-#             path = v.get("path") or v.get("attributes", {}).get("path")
-#             if not path:
-#                 continue
-#             if vtype in ("commit_file", "file"):
-#                 all_items.append({"type": "blob", "path": path})
-#             elif vtype in ("commit_directory", "directory"):
-#                 all_items.append({"type": "tree", "path": path})
-#             else:
-#                 all_items.append({"type": vtype or "other", "path": path})
-
-#         next_url = data.get("next")
-#         if not next_url:
-#             break
-#         url = next_url
-#         params = None
-
-#     return all_items
-
-
-
-
-from urllib.parse import quote
-
-def _api_get(url, token, params=None, timeout=20):
-    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
-    return requests.get(url, headers=headers, params=params, timeout=timeout)
-
-def _normalize_src_response(resp):
-    data = resp.json()
-    items = []
-    for v in data.get("values", []):
-        vtype = (v.get("type") or "").lower()
-        path = v.get("path") or v.get("attributes", {}).get("path")
-        if not path:
-            continue
-        if vtype in ("commit_file", "file"):
-            items.append({"type": "blob", "path": path})
-        elif vtype in ("commit_directory", "directory"):
-            items.append({"type": "tree", "path": path})
-        else:
-            items.append({"type": vtype or "other", "path": path})
-    # follow pagination
-    next_url = data.get("next")
-    while next_url:
-        r = _api_get(next_url, token=None)  # next_url already has full path; we will call with bearer below
-        # note: requests to next_url must include headers; use requests directly:
-        r = requests.get(next_url, headers={"Authorization": f"Bearer {token}", "Accept": "application/json"}, timeout=20)
-        r.raise_for_status()
-        data = r.json()
-        for v in data.get("values", []):
-            vtype = (v.get("type") or "").lower()
-            path = v.get("path") or v.get("attributes", {}).get("path")
-            if not path:
-                continue
-            if vtype in ("commit_file", "file"):
-                items.append({"type": "blob", "path": path})
-            elif vtype in ("commit_directory", "directory"):
-                items.append({"type": "tree", "path": path})
-            else:
-                items.append({"type": vtype or "other", "path": path})
-        next_url = data.get("next")
-    return items
-
-def _git_clone_list_files(workspace, repo, branch, git_username, app_password, shallow=True):
-    """
-    Clone into a temp dir, list files (recursively), return list of dicts {'type':'blob','path':...}.
-    WARNING: This embeds credentials in the clone URL briefly; be careful with logs.
-    """
-    repo_url = f"https://{git_username}:{app_password}@bitbucket.org/{workspace}/{repo}.git"
-    tmpdir = tempfile.mkdtemp(prefix="bb_clone_")
-    try:
-        clone_args = ["git", "clone"]
-        if shallow:
-            clone_args += ["--depth", "1"]
-        if branch:
-            clone_args += ["--branch", branch]
-        clone_args += [repo_url, tmpdir]
-        subprocess.check_call(clone_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        # list all files tracked at HEAD
-        out = subprocess.check_output(["git", "-C", tmpdir, "ls-tree", "-r", "--name-only", "HEAD"], text=True)
-        files = []
-        for line in out.splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            files.append({"type": "blob", "path": line})
-        return files
-    finally:
-        # cleanup
-        try:
-            shutil.rmtree(tmpdir)
-        except Exception:
-            pass
-
-def get_repo_files(workspace, repo, branch, token, git_credentials=None):
-    """
-    Try API /src/{branch} (Bearer token). If 404, and git_credentials provided as (git_username, app_password),
-    fallback to git clone and return file list. Returns list of {'type':'blob','path':...}.
-    """
-    # 1) Try src/{branch}
-    if branch:
-        url_branch = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{quote(branch)}"
-        r = _api_get(url_branch, token, params={"pagelen": 200})
-        if r.status_code == 200:
-            return _normalize_src_response(r)
-        if r.status_code not in (404,):
-            # permission or other error: surface it
-            if r.status_code in (401,403):
-                raise Exception(f"Auth/Permission error ({r.status_code}) when calling {url_branch}: {r.text[:300]}")
-            r.raise_for_status()
-
-    # 2) Try repo default branch (metadata)
-    meta_url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}"
-    rmeta = _api_get(meta_url, token)
-    default_branch = None
-    if rmeta.status_code == 200:
-        md = rmeta.json()
-        mb = md.get("mainbranch") or md.get("main_branch") or {}
-        default_branch = mb.get("name") if isinstance(mb, dict) else None
-    else:
-        # if meta failed, surface helpful message
-        if rmeta.status_code in (401,403):
-            raise Exception(f"Auth error ({rmeta.status_code}) fetching repo metadata: {rmeta.text[:300]}")
-        # else continue to attempt /src root
-
-    if default_branch and default_branch != branch:
-        url_default = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{quote(default_branch)}"
-        rd = _api_get(url_default, token, params={"pagelen": 200})
-        if rd.status_code == 200:
-            return _normalize_src_response(rd)
-        if rd.status_code not in (404,):
-            if rd.status_code in (401,403):
-                raise Exception(f"Auth/Permission error ({rd.status_code}) when calling {url_default}: {rd.text[:300]}")
-            rd.raise_for_status()
-
-    # 3) Try src root
-    url_root = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src"
-    rr = _api_get(url_root, token, params={"pagelen": 200})
-    if rr.status_code == 200:
-        return _normalize_src_response(rr)
-    if rr.status_code in (401,403):
-        raise Exception(f"Auth/Permission error ({rr.status_code}) when calling {url_root}: {rr.text[:300]}")
-    # rr.status_code likely 404 here (as you observed)
-
-    # 4) Fallback to git clone if credentials provided
-    if git_credentials:
-        git_username, app_password = git_credentials
-        # warn about security in logs but proceed
-        files = _git_clone_list_files(workspace, repo, branch or default_branch, git_username, app_password)
-        if files:
-            return files
-        raise Exception("Git clone fallback succeeded but returned no files.")
-    else:
-        raise Exception(
-            "Not found (404) for /src endpoints AND no git_credentials provided for fallback.\n"
-            "Options:\n"
-            "  1) Provide git_credentials=(git_username, app_password) to enable git clone fallback.\n"
-            "  2) If you know files you need, fetch them via raw URLs: "
-            "https://bitbucket.org/{workspace}/{repo}/raw/{branch}/{path}\n"
-            "  3) Use `git clone https://<username>:<app_password>@bitbucket.org/{workspace}/{repo}.git` locally."
-        )
-
-
-
-# def download_file(username, repo, path, token, branch="main"):
-#     # URL-encode project (username/repo) and the file path
-#     project = urllib.parse.quote_plus(f"{username}/{repo}")
-#     file_path = urllib.parse.quote_plus(path, safe='')
-
-#     url = f"https://gitlab.com/api/v4/projects/{project}/repository/files/{file_path}?ref={branch}"
-#     headers = {
-#         "Authorization": f"Bearer {token}",
-#         "Accept": "application/json",
-#     }
-
-#     response = requests.get(url, headers=headers, timeout=20)
-#     response.raise_for_status()
-#     data = response.json()
-
-#     # GitLab returns base64-encoded "content"
-#     content = base64.b64decode(data["content"]).decode("utf-8", errors="ignore")
-#     return content
-
-import requests
-import base64
-import urllib.parse
-
-# def download_file(username, repo, path, token, branch="main"):
-#     # URL-encode the file path for Bitbucket
-#     encoded_path = urllib.parse.quote(path, safe='')
-
-#     # Bitbucket API endpoint for retrieving raw file content
-#     url = f"https://api.bitbucket.org/2.0/repositories/{username}/{repo}/src/{branch}/{encoded_path}"
-#     headers = {
-#         "Authorization": f"Bearer {token}",
-#         "Accept": "application/octet-stream",  # Bitbucket returns raw file content
-#     }
-
-#     response = requests.get(url, headers=headers, timeout=20)
-#     response.raise_for_status()
-
-#     # Bitbucket returns the raw file content directly, not base64 encoded
-#     content = response.text
-#     return content
 
 def download_file(workspace, repo, path, token, branch="main"):
     """
-    Download file raw content from Bitbucket. Returns text (decoded) for text files.
-    If binary content is expected, you can change to return response.content.
+    Download file content from Bitbucket repository
+    
+    Args:
+        workspace: Bitbucket workspace (username or team name)
+        repo: Repository name
+        path: File path in repository
+        token: Bitbucket app password or access token
+        branch: Branch name (default: "main")
     """
-    # ensure path is properly quoted (but not slashes)
-    encoded_path = quote(path, safe="/")
-    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{quote(branch)}/{encoded_path}"
-    # Try Basic then Bearer
-    try:
-        resp = _request_with_fallback(url, None, token, timeout=20)
-    except requests.RequestException as e:
-        raise Exception(f"Failed to download file: {e}")
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/{path}"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
+    
+    # Bitbucket returns raw file content directly, no base64 encoding
+    return response.text
 
-    if resp.status_code == 200:
-        # Bitbucket returns raw file content for this endpoint
-        # Try to decode text; if binary, return bytes
-        try:
-            text = resp.content.decode("utf-8")
-            return text
-        except Exception:
-            return resp.content
-    elif resp.status_code == 404:
-        raise Exception(f"File not found: {workspace}/{repo}/{path} (branch={branch})")
-    else:
-        raise Exception(f"Failed to download file ({resp.status_code}): {resp.text[:300]}")
+# Alternative version using Bitbucket's download endpoint (if raw content doesn't work)
+def download_file_alternative(workspace, repo, path, token, branch="main"):
+    """
+    Alternative method to download file using Bitbucket's download endpoint
+    """
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/downloads/{path}"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
+    return response.text
 
+# Helper function to get repository branches
+def get_repo_branches(workspace, repo, token):
+    """
+    Get list of branches for a repository
+    """
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/refs/branches"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
+    data = response.json()
+    
+    return [branch["name"] for branch in data.get("values", [])]
 
+# Helper function to get repository information
+def get_repo_info(workspace, repo, token):
+    """
+    Get basic repository information
+    """
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    response = requests.get(url, headers=headers, timeout=20)
+    response.raise_for_status()
+    return response.json()
+    
 
 def get_access_token(username, platform="bitbucket"):
     """
