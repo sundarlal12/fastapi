@@ -648,9 +648,99 @@ def get_valid_branch(username, repo, token, branch_arg=None, preferred=None):
 #     return filtered_files
 
 
+# def get_repo_files(workspace, repo, branch, token):
+#     """
+#     Get filtered files from a Bitbucket repository with proper pagination handling
+    
+#     Args:
+#         workspace: Bitbucket workspace (username or team name)
+#         repo: Repository name
+#         branch: Branch name
+#         token: Bitbucket app password or access token
+#     """
+#     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/"
+#     headers = {"Authorization": f"Bearer {token}"}
+    
+#     all_files = []
+#     next_page_url = url
+    
+#     while next_page_url:
+#         try:
+#             response = requests.get(next_page_url, headers=headers, timeout=20)
+#             response.raise_for_status()
+#             data = response.json()
+            
+#             # Process current page files
+#             for item in data.get("values", []):
+#                 # Bitbucket returns files with type "commit_file"
+#                 if item.get("type") != "commit_file":
+#                     continue
+
+#                 file_path = item.get("path", "")
+#                 suffix = Path(file_path).suffix.lower()
+#                 filename = Path(file_path).name
+#                 lower_path = file_path.lower()
+#                 lower_name = filename.lower()
+
+#                 # Debug: Print all files found
+#                 print(f"📁 Found file: {file_path} (type: {item.get('type')})")
+
+#                 # 1) Always include special dependency files
+#                 if filename in SPECIAL_FILES:
+#                     print(f"✅ Including special file: {filename}")
+#                     all_files.append(item)
+#                     continue
+
+#                 # 2) Only allow other .json/.txt/.xml files if they are in SPECIAL_FILES
+#                 if suffix in {'.json', '.txt', '.xml'}:
+#                     # We already handled SPECIAL_FILES above, so skip other .json/.txt/.xml
+#                     print(f"⏭️  Skipping non-special file: {filename}")
+#                     continue
+
+#                 # 3) Only consider files with allowed extensions
+#                 if suffix not in ALLOWED_EXTENSIONS:
+#                     print(f"⏭️  Skipping file with disallowed extension: {filename} ({suffix})")
+#                     continue
+
+#                 # 4) Exclude files that match any EXCLUDED_PATTERNS
+#                 excluded = False
+#                 for pat in EXCLUDED_PATTERNS:
+#                     p = pat.lower()
+#                     # If pattern contains a slash treat it as a path pattern, otherwise match filename and path
+#                     if "/" in p:
+#                         if fnmatch.fnmatch(lower_path, p):
+#                             excluded = True
+#                             print(f"🚫 Excluded by path pattern {pat}: {file_path}")
+#                             break
+#                     else:
+#                         if fnmatch.fnmatch(lower_name, p) or fnmatch.fnmatch(lower_path, p):
+#                             excluded = True
+#                             print(f"🚫 Excluded by name pattern {pat}: {file_path}")
+#                             break
+
+#                 if excluded:
+#                     continue
+
+#                 # 5) Passed all checks -> include
+#                 print(f"✅ Including file: {file_path}")
+#                 all_files.append(item)
+
+#             # Check for next page
+#             next_page_url = data.get('next')
+#             if next_page_url:
+#                 print(f"📄 Fetching next page: {next_page_url}")
+                
+#         except requests.exceptions.RequestException as e:
+#             print(f"❌ Error fetching files from Bitbucket: {e}")
+#             break
+
+#     print(f"📊 Total files after filtering: {len(all_files)}")
+#     return all_files
+
+
 def get_repo_files(workspace, repo, branch, token):
     """
-    Get filtered files from a Bitbucket repository with proper pagination handling
+    Get filtered files from a Bitbucket repository with recursive directory scanning
     
     Args:
         workspace: Bitbucket workspace (username or team name)
@@ -658,84 +748,111 @@ def get_repo_files(workspace, repo, branch, token):
         branch: Branch name
         token: Bitbucket app password or access token
     """
-    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/"
-    headers = {"Authorization": f"Bearer {token}"}
-    
-    all_files = []
-    next_page_url = url
-    
-    while next_page_url:
-        try:
-            response = requests.get(next_page_url, headers=headers, timeout=20)
-            response.raise_for_status()
-            data = response.json()
-            
-            # Process current page files
-            for item in data.get("values", []):
-                # Bitbucket returns files with type "commit_file"
-                if item.get("type") != "commit_file":
-                    continue
-
-                file_path = item.get("path", "")
-                suffix = Path(file_path).suffix.lower()
-                filename = Path(file_path).name
-                lower_path = file_path.lower()
-                lower_name = filename.lower()
-
-                # Debug: Print all files found
-                print(f"📁 Found file: {file_path} (type: {item.get('type')})")
-
-                # 1) Always include special dependency files
-                if filename in SPECIAL_FILES:
-                    print(f"✅ Including special file: {filename}")
-                    all_files.append(item)
-                    continue
-
-                # 2) Only allow other .json/.txt/.xml files if they are in SPECIAL_FILES
-                if suffix in {'.json', '.txt', '.xml'}:
-                    # We already handled SPECIAL_FILES above, so skip other .json/.txt/.xml
-                    print(f"⏭️  Skipping non-special file: {filename}")
-                    continue
-
-                # 3) Only consider files with allowed extensions
-                if suffix not in ALLOWED_EXTENSIONS:
-                    print(f"⏭️  Skipping file with disallowed extension: {filename} ({suffix})")
-                    continue
-
-                # 4) Exclude files that match any EXCLUDED_PATTERNS
-                excluded = False
-                for pat in EXCLUDED_PATTERNS:
-                    p = pat.lower()
-                    # If pattern contains a slash treat it as a path pattern, otherwise match filename and path
-                    if "/" in p:
-                        if fnmatch.fnmatch(lower_path, p):
-                            excluded = True
-                            print(f"🚫 Excluded by path pattern {pat}: {file_path}")
-                            break
-                    else:
-                        if fnmatch.fnmatch(lower_name, p) or fnmatch.fnmatch(lower_path, p):
-                            excluded = True
-                            print(f"🚫 Excluded by name pattern {pat}: {file_path}")
-                            break
-
-                if excluded:
-                    continue
-
-                # 5) Passed all checks -> include
-                print(f"✅ Including file: {file_path}")
-                all_files.append(item)
-
-            # Check for next page
-            next_page_url = data.get('next')
-            if next_page_url:
-                print(f"📄 Fetching next page: {next_page_url}")
+    def scan_directory(path=""):
+        """
+        Recursively scan a directory and return all files
+        """
+        url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/{path}"
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        directory_files = []
+        next_page_url = url
+        
+        while next_page_url:
+            try:
+                response = requests.get(next_page_url, headers=headers, timeout=20)
+                response.raise_for_status()
+                data = response.json()
                 
-        except requests.exceptions.RequestException as e:
-            print(f"❌ Error fetching files from Bitbucket: {e}")
-            break
+                # Process current page items
+                for item in data.get("values", []):
+                    item_type = item.get("type")
+                    item_path = item.get("path", "")
+                    
+                    print(f"📁 Found: {item_path} (type: {item_type})")
+                    
+                    if item_type == "commit_directory":
+                        # Recursively scan subdirectory
+                        print(f"📂 Scanning subdirectory: {item_path}")
+                        subdirectory_files = scan_directory(item_path)
+                        directory_files.extend(subdirectory_files)
+                    elif item_type == "commit_file":
+                        # Add file to results
+                        directory_files.append(item)
+                
+                # Check for next page
+                next_page_url = data.get('next')
+                if next_page_url:
+                    print(f"📄 Fetching next page: {next_page_url}")
+                    
+            except requests.exceptions.RequestException as e:
+                print(f"❌ Error scanning directory {path}: {e}")
+                break
+        
+        return directory_files
+    
+    # Start scanning from root directory
+    print("🔍 Starting recursive directory scan...")
+    all_files = scan_directory()
+    
+    # Now filter the files
+    filtered_files = []
+    
+    for item in all_files:
+        file_path = item.get("path", "")
+        suffix = Path(file_path).suffix.lower()
+        filename = Path(file_path).name
+        lower_path = file_path.lower()
+        lower_name = filename.lower()
 
-    print(f"📊 Total files after filtering: {len(all_files)}")
-    return all_files
+        # 1) Always include special dependency files
+        if filename in SPECIAL_FILES:
+            print(f"✅ Including special file: {filename}")
+            filtered_files.append(item)
+            continue
+
+        # 2) Only allow other .json/.txt/.xml files if they are in SPECIAL_FILES
+        if suffix in {'.json', '.txt', '.xml'}:
+            # We already handled SPECIAL_FILES above, so skip other .json/.txt/.xml
+            print(f"⏭️  Skipping non-special file: {filename}")
+            continue
+
+        # 3) Only consider files with allowed extensions
+        if suffix not in ALLOWED_EXTENSIONS:
+            print(f"⏭️  Skipping file with disallowed extension: {filename} ({suffix})")
+            continue
+
+        # 4) Exclude files that match any EXCLUDED_PATTERNS
+        excluded = False
+        for pat in EXCLUDED_PATTERNS:
+            p = pat.lower()
+            # If pattern contains a slash treat it as a path pattern, otherwise match filename and path
+            if "/" in p:
+                if fnmatch.fnmatch(lower_path, p):
+                    excluded = True
+                    print(f"🚫 Excluded by path pattern {pat}: {file_path}")
+                    break
+            else:
+                if fnmatch.fnmatch(lower_name, p) or fnmatch.fnmatch(lower_path, p):
+                    excluded = True
+                    print(f"🚫 Excluded by name pattern {pat}: {file_path}")
+                    break
+
+        if excluded:
+            continue
+
+        # 5) Passed all checks -> include
+        print(f"✅ Including file: {file_path}")
+        filtered_files.append(item)
+
+    print(f"📊 Total files after filtering: {len(filtered_files)}")
+    
+    # Print summary of included files
+    print("\n📋 Included files:")
+    for file in filtered_files:
+        print(f"  - {file['path']}")
+    
+    return filtered_files
 
 # def download_file(workspace, repo, path, token, branch="main"):
 #     """
@@ -757,33 +874,62 @@ def get_repo_files(workspace, repo, branch, token):
 #     # Bitbucket returns raw file content directly, no base64 encoding
 #     return response.text
 
+# def download_file(workspace, repo, path, token, branch="main"):
+#     """
+#     Download file content from Bitbucket repository
+    
+#     Args:
+#         workspace: Bitbucket workspace (username or team name)
+#         repo: Repository name
+#         path: File path in repository
+#         token: Bitbucket app password or access token
+#         branch: Branch name (default: "main")
+#     """
+#     # URL encode the path to handle special characters
+#     encoded_path = quote(path, safe='')
+#     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/{encoded_path}"
+#     headers = {"Authorization": f"Bearer {token}"}
+    
+#     response = requests.get(url, headers=headers, timeout=20)
+    
+#     if response.status_code == 404:
+#         # Try alternative endpoint for some file types
+#         alt_url = f"https://bitbucket.org/{workspace}/{repo}/raw/{branch}/{encoded_path}"
+#         response = requests.get(alt_url, headers=headers, timeout=20)
+    
+#     response.raise_for_status()
+    
+#     # Bitbucket returns raw file content directly for src endpoint
+#     return response.text
+
 def download_file(workspace, repo, path, token, branch="main"):
     """
     Download file content from Bitbucket repository
-    
-    Args:
-        workspace: Bitbucket workspace (username or team name)
-        repo: Repository name
-        path: File path in repository
-        token: Bitbucket app password or access token
-        branch: Branch name (default: "main")
     """
-    # URL encode the path to handle special characters
-    encoded_path = quote(path, safe='')
+    # Remove leading slash if present
+    clean_path = path.lstrip('/')
+    encoded_path = quote(clean_path, safe='')
+    
+    # Try the main API endpoint first
     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/{encoded_path}"
     headers = {"Authorization": f"Bearer {token}"}
     
-    response = requests.get(url, headers=headers, timeout=20)
+    print(f"📥 Downloading from: {url}")
     
-    if response.status_code == 404:
-        # Try alternative endpoint for some file types
-        alt_url = f"https://bitbucket.org/{workspace}/{repo}/raw/{branch}/{encoded_path}"
-        response = requests.get(alt_url, headers=headers, timeout=20)
-    
-    response.raise_for_status()
-    
-    # Bitbucket returns raw file content directly for src endpoint
-    return response.text
+    try:
+        response = requests.get(url, headers=headers, timeout=20)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.HTTPError as e:
+        if response.status_code == 404:
+            # Try the raw endpoint as fallback
+            raw_url = f"https://bitbucket.org/{workspace}/{repo}/raw/{branch}/{encoded_path}"
+            print(f"🔄 Trying fallback URL: {raw_url}")
+            response = requests.get(raw_url, headers=headers, timeout=20)
+            response.raise_for_status()
+            return response.text
+        else:
+            raise e
 
 # Alternative version using Bitbucket's download endpoint (if raw content doesn't work)
 def download_file_alternative(workspace, repo, path, token, branch="main"):
