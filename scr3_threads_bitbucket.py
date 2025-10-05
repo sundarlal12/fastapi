@@ -526,26 +526,26 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
 
 #     raise Exception("❌ No valid branch found on Bitbucket")
 
+
+
 def _request_with_fallback(url, username, token, **kwargs):
     """
-    Try Basic auth (username+token) first, then Bearer header fallback.
+    Make a Bitbucket API request using only Bearer token authentication.
     Returns requests.Response or raises requests.RequestException on network error.
     """
-    # Try Basic (app password) first
-    try:
-        resp = requests.get(url, auth=HTTPBasicAuth(username, token), **kwargs)
-        # If we get a valid HTTP response (200/401/403/404 etc), return it
-        if isinstance(resp, requests.Response):
-            return resp
-    except requests.RequestException:
-        # fall through to bearer attempt
-        pass
-
-    # Try Bearer header
     headers = kwargs.pop("headers", {}) or {}
-    headers.update({"Authorization": f"Bearer {token}", "Accept": "application/json"})
-    resp2 = requests.get(url, headers=headers, **kwargs)
-    return resp2
+    headers.update({
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json",
+    })
+
+    try:
+        resp = requests.get(url, headers=headers, **kwargs)
+        return resp
+    except requests.RequestException as e:
+        print(f"⚠️ Request failed for {url}: {e}")
+        raise
+
 
 # ---------------------------
 # Workspace / Branch helpers
