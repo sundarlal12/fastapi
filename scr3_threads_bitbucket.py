@@ -487,37 +487,98 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
 
 
 
+# def get_valid_branch(username, repo, token, preferred=branch):
+#     """
+#     Returns the first valid branch ('main' or 'master' or preferred) for a Bitbucket repository.
+#     """
+#     branches = ["main", "master"]
+#     if preferred and preferred not in branches:
+#         branches.insert(0, preferred)
+
+#     for branch in branches:
+#         try:
+#             # Bitbucket API endpoint for checking a branch
+#             url = f"https://api.bitbucket.org/2.0/repositories/{username}/{repo}/refs/branches/{branch}"
+#             headers = {
+#                 "Authorization": f"Bearer {token}",
+#                 "Accept": "application/json",
+#             }
+
+#             response = requests.get(url, headers=headers, timeout=15)
+
+#             if response.status_code == 200:
+#                 print(f"✅ Found valid branch: {branch}")
+#                 return branch
+#             elif response.status_code == 404:
+#                 continue  # Try next branch
+#             else:
+#                 print(f"⚠️ Unexpected response ({response.status_code}): {response.text}")
+
+#         except requests.RequestException as e:
+#             print(f"⚠️ Branch check failed: {e}")
+
+#     raise Exception("❌ No valid branch found on Bitbucket")
+
+
 def get_valid_branch(username, repo, token, preferred=None):
     """
-    Returns the first valid branch ('main' or 'master' or preferred) for a Bitbucket repository.
+    Tries to find a valid branch ('preferred', 'main', 'master') and returns
+    (workspace_slug, branch) where it was found.
+
+    It first tries username as workspace (to keep old behaviour), then
+    enumerates accessible workspaces and returns the first match.
     """
     branches = ["main", "master"]
     if preferred and preferred not in branches:
         branches.insert(0, preferred)
 
-    for branch in branches:
-        try:
-            # Bitbucket API endpoint for checking a branch
-            url = f"https://api.bitbucket.org/2.0/repositories/{username}/{repo}/refs/branches/{branch}"
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/json",
-            }
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
 
-            response = requests.get(url, headers=headers, timeout=15)
+    def _check_workspace(workspace):
+        for branch in branches:
+            url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/refs/branches/{branch}"
+            try:
+                resp = requests.get(url, headers=headers, timeout=15)
+            except requests.RequestException as e:
+                # network error — skip this workspace/branch
+                print(f"⚠️ Branch check failed for {workspace}/{branch}: {e}")
+                continue
 
-            if response.status_code == 200:
-                print(f"✅ Found valid branch: {branch}")
+            if resp.status_code == 200:
+                print(f"✅ Found valid branch: {branch} in workspace '{workspace}'")
                 return branch
-            elif response.status_code == 404:
-                continue  # Try next branch
-            else:
-                print(f"⚠️ Unexpected response ({response.status_code}): {response.text}")
+            if resp.status_code == 404:
+                continue
+            # other statuses: print and continue
+            print(f"⚠️ Unexpected response for {workspace}/{branch}: {resp.status_code} {resp.text[:200]}")
 
-        except requests.RequestException as e:
-            print(f"⚠️ Branch check failed: {e}")
+        return None
 
-    raise Exception("❌ No valid branch found on Bitbucket")
+    # 1) Try username as workspace
+    branch = _check_workspace(username)
+    if branch:
+        return username, branch
+
+    # 2) List workspaces and try each slug
+    try:
+        ws_resp = requests.get("https://api.bitbucket.org/2.0/workspaces", headers=headers, timeout=15)
+    except requests.RequestException as e:
+        print(f"⚠️ Failed to list workspaces: {e}")
+        raise Exception("❌ Could not determine workspace and branch")
+
+    if ws_resp.status_code != 200:
+        raise Exception(f"❌ Failed to list workspaces ({ws_resp.status_code}): {ws_resp.text}")
+
+    workspaces = ws_resp.json().get("values", [])
+    for ws in workspaces:
+        slug = ws.get("slug")
+        if not slug:
+            continue
+        branch = _check_workspace(slug)
+        if branch:
+            return slug, branch
+
+    raise Exception(f"❌ No valid branch found for repo '{repo}' in any accessible workspace.")
 
 
 # def get_repo_files(username, repo, branch, token):
