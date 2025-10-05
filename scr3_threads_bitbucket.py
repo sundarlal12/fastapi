@@ -6,6 +6,10 @@ import sys
 import os
 import urllib.parse
 
+import subprocess
+import tempfile
+
+import shutil
 import re
 import json
 
@@ -843,59 +847,204 @@ def get_repo_files(username, repo, branch, token):
 #     return filtered_files
 
 
-def get_repo_files(workspace, repo, branch, token):
-    """
-    Returns list of normalized items from Bitbucket src endpoint:
-      {'type':'blob','path':'...'} for files
-    Handles pagination (follows 'next').
-    """
-    # Build initial URL (branch must be a string, not a tuple)
-    base = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{quote(branch)}"
-    url = base
-    print(url)
-    params = {"pagelen": 100}
-    all_items = []
+# def get_repo_files(workspace, repo, branch, token):
+#     """
+#     Returns list of normalized items from Bitbucket src endpoint:
+#       {'type':'blob','path':'...'} for files
+#     Handles pagination (follows 'next').
+#     """
+#     # Build initial URL (branch must be a string, not a tuple)
+#     base = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{quote(branch)}"
+#     url = base
+#     print(url)
+#     params = {"pagelen": 200}
+#     all_items = []
 
-    while True:
-        # Use basic auth first if possible
-        resp = _request_with_fallback(url, workspace if False else None, token, params=params, timeout=20) \
-               if False else _request_with_fallback(url, None, token, params=params, timeout=20)
-        # Explanation: we call _request_with_fallback without a username here; fallback uses Bearer.
-        # If you prefer Basic (username+app-password) for this call, pass username instead of None.
-        # For simplicity we prefer bearer here. If your token is an app password, both methods work.
-        try:
-            resp.raise_for_status()
-        except requests.HTTPError as e:
-            # surface useful message
-            if resp.status_code in (401, 403):
-                raise Exception(f"Auth/Permission error ({resp.status_code}). Check credentials. Body: {resp.text[:300]}")
-            if resp.status_code == 404:
-                raise Exception(f"Not found (404). Verify workspace '{workspace}', repo '{repo}', and branch '{branch}'.")
-            raise
+#     while True:
+#         # Use basic auth first if possible
+#         resp = _request_with_fallback(url, workspace if False else None, token, params=params, timeout=20) \
+#                if False else _request_with_fallback(url, None, token, params=params, timeout=20)
+#         # Explanation: we call _request_with_fallback without a username here; fallback uses Bearer.
+#         # If you prefer Basic (username+app-password) for this call, pass username instead of None.
+#         # For simplicity we prefer bearer here. If your token is an app password, both methods work.
+#         try:
+#             resp.raise_for_status()
+#         except requests.HTTPError as e:
+#             # surface useful message
+#             if resp.status_code in (401, 403):
+#                 raise Exception(f"Auth/Permission error ({resp.status_code}). Check credentials. Body: {resp.text[:300]}")
+#             if resp.status_code == 404:
+#                 raise Exception(f"Not found (404). Verify workspace '{workspace}', repo '{repo}', and branch '{branch}'.")
+#             raise
 
-        data = resp.json()
-        values = data.get("values", [])
+#         data = resp.json()
+#         values = data.get("values", [])
 
-        # Normalize entries
-        for v in values:
+#         # Normalize entries
+#         for v in values:
+#             vtype = (v.get("type") or "").lower()
+#             path = v.get("path") or v.get("attributes", {}).get("path")
+#             if not path:
+#                 continue
+#             if vtype in ("commit_file", "file"):
+#                 all_items.append({"type": "blob", "path": path})
+#             elif vtype in ("commit_directory", "directory"):
+#                 all_items.append({"type": "tree", "path": path})
+#             else:
+#                 all_items.append({"type": vtype or "other", "path": path})
+
+#         next_url = data.get("next")
+#         if not next_url:
+#             break
+#         url = next_url
+#         params = None
+
+#     return all_items
+
+
+
+
+from urllib.parse import quote
+
+def _api_get(url, token, params=None, timeout=20):
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+    return requests.get(url, headers=headers, params=params, timeout=timeout)
+
+def _normalize_src_response(resp):
+    data = resp.json()
+    items = []
+    for v in data.get("values", []):
+        vtype = (v.get("type") or "").lower()
+        path = v.get("path") or v.get("attributes", {}).get("path")
+        if not path:
+            continue
+        if vtype in ("commit_file", "file"):
+            items.append({"type": "blob", "path": path})
+        elif vtype in ("commit_directory", "directory"):
+            items.append({"type": "tree", "path": path})
+        else:
+            items.append({"type": vtype or "other", "path": path})
+    # follow pagination
+    next_url = data.get("next")
+    while next_url:
+        r = _api_get(next_url, token=None)  # next_url already has full path; we will call with bearer below
+        # note: requests to next_url must include headers; use requests directly:
+        r = requests.get(next_url, headers={"Authorization": f"Bearer {token}", "Accept": "application/json"}, timeout=20)
+        r.raise_for_status()
+        data = r.json()
+        for v in data.get("values", []):
             vtype = (v.get("type") or "").lower()
             path = v.get("path") or v.get("attributes", {}).get("path")
             if not path:
                 continue
             if vtype in ("commit_file", "file"):
-                all_items.append({"type": "blob", "path": path})
+                items.append({"type": "blob", "path": path})
             elif vtype in ("commit_directory", "directory"):
-                all_items.append({"type": "tree", "path": path})
+                items.append({"type": "tree", "path": path})
             else:
-                all_items.append({"type": vtype or "other", "path": path})
-
+                items.append({"type": vtype or "other", "path": path})
         next_url = data.get("next")
-        if not next_url:
-            break
-        url = next_url
-        params = None
+    return items
 
-    return all_items
+def _git_clone_list_files(workspace, repo, branch, git_username, app_password, shallow=True):
+    """
+    Clone into a temp dir, list files (recursively), return list of dicts {'type':'blob','path':...}.
+    WARNING: This embeds credentials in the clone URL briefly; be careful with logs.
+    """
+    repo_url = f"https://{git_username}:{app_password}@bitbucket.org/{workspace}/{repo}.git"
+    tmpdir = tempfile.mkdtemp(prefix="bb_clone_")
+    try:
+        clone_args = ["git", "clone"]
+        if shallow:
+            clone_args += ["--depth", "1"]
+        if branch:
+            clone_args += ["--branch", branch]
+        clone_args += [repo_url, tmpdir]
+        subprocess.check_call(clone_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # list all files tracked at HEAD
+        out = subprocess.check_output(["git", "-C", tmpdir, "ls-tree", "-r", "--name-only", "HEAD"], text=True)
+        files = []
+        for line in out.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            files.append({"type": "blob", "path": line})
+        return files
+    finally:
+        # cleanup
+        try:
+            shutil.rmtree(tmpdir)
+        except Exception:
+            pass
+
+def get_repo_files(workspace, repo, branch, token, git_credentials=None):
+    """
+    Try API /src/{branch} (Bearer token). If 404, and git_credentials provided as (git_username, app_password),
+    fallback to git clone and return file list. Returns list of {'type':'blob','path':...}.
+    """
+    # 1) Try src/{branch}
+    if branch:
+        url_branch = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{quote(branch)}"
+        r = _api_get(url_branch, token, params={"pagelen": 200})
+        if r.status_code == 200:
+            return _normalize_src_response(r)
+        if r.status_code not in (404,):
+            # permission or other error: surface it
+            if r.status_code in (401,403):
+                raise Exception(f"Auth/Permission error ({r.status_code}) when calling {url_branch}: {r.text[:300]}")
+            r.raise_for_status()
+
+    # 2) Try repo default branch (metadata)
+    meta_url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}"
+    rmeta = _api_get(meta_url, token)
+    default_branch = None
+    if rmeta.status_code == 200:
+        md = rmeta.json()
+        mb = md.get("mainbranch") or md.get("main_branch") or {}
+        default_branch = mb.get("name") if isinstance(mb, dict) else None
+    else:
+        # if meta failed, surface helpful message
+        if rmeta.status_code in (401,403):
+            raise Exception(f"Auth error ({rmeta.status_code}) fetching repo metadata: {rmeta.text[:300]}")
+        # else continue to attempt /src root
+
+    if default_branch and default_branch != branch:
+        url_default = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{quote(default_branch)}"
+        rd = _api_get(url_default, token, params={"pagelen": 200})
+        if rd.status_code == 200:
+            return _normalize_src_response(rd)
+        if rd.status_code not in (404,):
+            if rd.status_code in (401,403):
+                raise Exception(f"Auth/Permission error ({rd.status_code}) when calling {url_default}: {rd.text[:300]}")
+            rd.raise_for_status()
+
+    # 3) Try src root
+    url_root = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src"
+    rr = _api_get(url_root, token, params={"pagelen": 200})
+    if rr.status_code == 200:
+        return _normalize_src_response(rr)
+    if rr.status_code in (401,403):
+        raise Exception(f"Auth/Permission error ({rr.status_code}) when calling {url_root}: {rr.text[:300]}")
+    # rr.status_code likely 404 here (as you observed)
+
+    # 4) Fallback to git clone if credentials provided
+    if git_credentials:
+        git_username, app_password = git_credentials
+        # warn about security in logs but proceed
+        files = _git_clone_list_files(workspace, repo, branch or default_branch, git_username, app_password)
+        if files:
+            return files
+        raise Exception("Git clone fallback succeeded but returned no files.")
+    else:
+        raise Exception(
+            "Not found (404) for /src endpoints AND no git_credentials provided for fallback.\n"
+            "Options:\n"
+            "  1) Provide git_credentials=(git_username, app_password) to enable git clone fallback.\n"
+            "  2) If you know files you need, fetch them via raw URLs: "
+            "https://bitbucket.org/{workspace}/{repo}/raw/{branch}/{path}\n"
+            "  3) Use `git clone https://<username>:<app_password>@bitbucket.org/{workspace}/{repo}.git` locally."
+        )
+
 
 
 # def download_file(username, repo, path, token, branch="main"):
