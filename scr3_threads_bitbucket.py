@@ -759,7 +759,7 @@ def get_repo_info(workspace, repo, token):
     response = requests.get(url, headers=headers, timeout=20)
     response.raise_for_status()
     return response.json()
-    
+
 
 def get_access_token(username, platform="bitbucket"):
     """
@@ -1224,10 +1224,10 @@ def main():
     try:
         token = get_access_token(username)
         email = EMAIL
-        workspace, branch_used = get_valid_branch(username, repo, token, branch_arg=branch)
-        print(f"📦 Using workspace: {workspace}, branch: {branch_used}")
+        workspace, valid_branch = get_valid_branch(username, repo, token, branch_arg=branch)
+        print(f"📦 Using workspace: {workspace}, branch: {valid_branch}")
         # files = get_repo_files(username, repo, branch_used, token)
-        files = get_repo_files(workspace, repo, branch_used, token)
+        files = get_repo_files(workspace, repo, valid_branch, token)
         if not files:
             print("⚠️ No valid files found.")
             return
