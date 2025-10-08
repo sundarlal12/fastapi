@@ -1024,8 +1024,8 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email, 
                     email=email,
                     platform=platform,
                     vuln_pack=vuln_pack)
-                else:
-                    print(f"ℹ️ No vulnerabilities for {vuln_pack}")
+            else:
+                print(f"ℹ️ No vulnerabilities for {vuln_pack}")
 
         except Exception as e:
             print(f"❌ Error querying OSV for {package_name}@{version}: {e}")
