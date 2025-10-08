@@ -857,17 +857,17 @@ def save_sca_info(vulns, username, repo, branch, file_path, version,vuln_pack, e
 
         # Insert into DB
         cursor.execute("""
-            INSERT INTO sca_info (
-                username, email, platform, repo_name, file_path, line_number,
-                vulnerability_type, cwe, cve, severity, short_description,
-                suggested_fix, vulnerable_code, patched_code,
-                bad_practice, good_practice, issueId, branch, affected_version, vulnerable_package,
-                created_at
-            ) VALUES (%s, %s, %s, %s, %s, NULL,
-                      %s, %s, %s, %s, %s,
-                      %s, NULL, NULL,
-                      NULL, NULL, %s, %s, %s, %s,
-                      NOW())
+            # INSERT INTO sca_info (
+            #     username, email, platform, repo_name, file_path, line_number,
+            #     vulnerability_type, cwe, cve, severity, short_description,
+            #     suggested_fix, vulnerable_code, patched_code,
+            #     bad_practice, good_practice, issueId, branch, affected_version, vulnerable_package,
+            #     created_at
+            # ) VALUES (%s, %s, %s, %s, %s, NULL,
+            #           %s, %s, %s, %s, %s,
+            #           %s, NULL, NULL,
+            #           NULL, NULL, %s, %s, %s, %s,
+            #           NOW())
         """, (
             username, email, platform, repo, file_path,
             vuln_type, cwe, cve, severity, description,
