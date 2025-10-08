@@ -823,61 +823,6 @@ def detect_ecosystem(filename):
 
 ##--------XXXXX---------
 
-from datetime import datetime
-"""
-def save_sca_info(vulns, username, repo, branch, file_path, version,vuln_pack, email=EMAIL, platform="bitbucket"):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    for vuln in vulns:
-        # CVE and CWE
-        cve = next((a for a in vuln.get("aliases", []) if a.startswith("CVE-")), vuln.get("id"))
-        cwe = ", ".join(vuln.get("database_specific", {}).get("cwe_ids", []))
-        severity = vuln.get("database_specific", {}).get("severity", "Unknown")
-
-        # Descriptions
-        description =  vuln.get("details", "")
-        vuln_type= vuln.get("summary") 
-
-        # Fix version
-        fix_version = next(
-            (e.get("fixed") for r in vuln.get("affected", [{}])[0].get("ranges", [])
-             for e in r.get("events", []) if "fixed" in e),
-            "Upgrade Recommended"
-        )
-
-        # Advice URLs
-        advice_urls = "\n".join(ref.get("url") for ref in vuln.get("references", []) if "url" in ref)
-
-        # Suggested fix message
-        suggested_fix = f"Upgrade to version {fix_version}.\n\nReferences:\n{advice_urls}"
-
-        # Affected version
-        affected_versions = ", ".join(vuln.get("affected", [{}])[0].get("versions", [])) or version
-
-        # Insert into DB
-        cursor.execute("""
-            # INSERT INTO sca_info (
-            #     username, email, platform, repo_name, file_path, line_number,
-            #     vulnerability_type, cwe, cve, severity, short_description,
-            #     suggested_fix, vulnerable_code, patched_code,
-            #     bad_practice, good_practice, issueId, branch, affected_version, vulnerable_package,
-            #     created_at
-            # ) VALUES (%s, %s, %s, %s, %s, NULL,
-            #           %s, %s, %s, %s, %s,
-            #           %s, NULL, NULL,
-            #           NULL, NULL, %s, %s, %s, %s,
-            #           NOW())
-        """, (
-            username, email, platform, repo, file_path,
-            vuln_type, cwe, cve, severity, description,
-            suggested_fix, vuln.get("id"), branch, affected_versions, vuln_pack
-        ))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
-"""
 
 from datetime import datetime
 
