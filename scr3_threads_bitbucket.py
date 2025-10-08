@@ -11,6 +11,7 @@ import json
 
 from json.decoder import JSONDecodeError
 
+import xml.etree.ElementTree as ET
 
 from requests.auth import HTTPBasicAuth
 from urllib.parse import quote
@@ -585,159 +586,6 @@ def get_valid_branch(username, repo, token, branch_arg=None, preferred=None):
 
 
 
-# def get_repo_files(workspace, repo, branch, token):
-#     """
-#     Get filtered files from a Bitbucket repository
-    
-#     Args:
-#         workspace: Bitbucket workspace (username or team name)
-#         repo: Repository name
-#         branch: Branch name
-#         token: Bitbucket app password or access token
-#     """
-#     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/"
-#     headers = {"Authorization": f"Bearer {token}"}
-    
-#     response = requests.get(url, headers=headers, timeout=20)
-#     response.raise_for_status()
-#     data = response.json()
-    
-#     filtered_files = []
-#     for item in data.get("values", []):
-#         if item.get("type") != "commit_file":
-#             continue
-
-#         file_path = item.get("path", "")
-#         suffix = Path(file_path).suffix.lower()
-#         filename = Path(file_path).name
-#         lower_path = file_path.lower()
-#         lower_name = filename.lower()
-
-#         # 1) Only allow special dependency files if they are in SPECIAL_FILES
-#         if suffix in {'.json', '.txt', '.xml'}:
-#             if filename in SPECIAL_FILES:
-#                 filtered_files.append(item)
-#             # else: skip other .json/.txt/.xml files
-#             continue
-
-#         # 2) Only consider files with allowed extensions
-#         if suffix not in ALLOWED_EXTENSIONS:
-#             continue
-
-#         # 3) Exclude files that match any EXCLUDED_PATTERNS (unless they are SPECIAL_FILES)
-#         excluded = False
-#         for pat in EXCLUDED_PATTERNS:
-#             p = pat.lower()
-#             # If pattern contains a slash treat it as a path pattern, otherwise match filename and path
-#             if "/" in p:
-#                 if fnmatch.fnmatch(lower_path, p):
-#                     excluded = True
-#                     break
-#             else:
-#                 if fnmatch.fnmatch(lower_name, p) or fnmatch.fnmatch(lower_path, p):
-#                     excluded = True
-#                     break
-
-#         if excluded:
-#             # skip excluded file
-#             continue
-
-#         # 4) Passed all checks -> include
-#         filtered_files.append(item)
-
-#     return filtered_files
-
-
-# def get_repo_files(workspace, repo, branch, token):
-#     """
-#     Get filtered files from a Bitbucket repository with proper pagination handling
-    
-#     Args:
-#         workspace: Bitbucket workspace (username or team name)
-#         repo: Repository name
-#         branch: Branch name
-#         token: Bitbucket app password or access token
-#     """
-#     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/"
-#     headers = {"Authorization": f"Bearer {token}"}
-    
-#     all_files = []
-#     next_page_url = url
-    
-#     while next_page_url:
-#         try:
-#             response = requests.get(next_page_url, headers=headers, timeout=20)
-#             response.raise_for_status()
-#             data = response.json()
-            
-#             # Process current page files
-#             for item in data.get("values", []):
-#                 # Bitbucket returns files with type "commit_file"
-#                 if item.get("type") != "commit_file":
-#                     continue
-
-#                 file_path = item.get("path", "")
-#                 suffix = Path(file_path).suffix.lower()
-#                 filename = Path(file_path).name
-#                 lower_path = file_path.lower()
-#                 lower_name = filename.lower()
-
-#                 # Debug: Print all files found
-#                 print(f"📁 Found file: {file_path} (type: {item.get('type')})")
-
-#                 # 1) Always include special dependency files
-#                 if filename in SPECIAL_FILES:
-#                     print(f"✅ Including special file: {filename}")
-#                     all_files.append(item)
-#                     continue
-
-#                 # 2) Only allow other .json/.txt/.xml files if they are in SPECIAL_FILES
-#                 if suffix in {'.json', '.txt', '.xml'}:
-#                     # We already handled SPECIAL_FILES above, so skip other .json/.txt/.xml
-#                     print(f"⏭️  Skipping non-special file: {filename}")
-#                     continue
-
-#                 # 3) Only consider files with allowed extensions
-#                 if suffix not in ALLOWED_EXTENSIONS:
-#                     print(f"⏭️  Skipping file with disallowed extension: {filename} ({suffix})")
-#                     continue
-
-#                 # 4) Exclude files that match any EXCLUDED_PATTERNS
-#                 excluded = False
-#                 for pat in EXCLUDED_PATTERNS:
-#                     p = pat.lower()
-#                     # If pattern contains a slash treat it as a path pattern, otherwise match filename and path
-#                     if "/" in p:
-#                         if fnmatch.fnmatch(lower_path, p):
-#                             excluded = True
-#                             print(f"🚫 Excluded by path pattern {pat}: {file_path}")
-#                             break
-#                     else:
-#                         if fnmatch.fnmatch(lower_name, p) or fnmatch.fnmatch(lower_path, p):
-#                             excluded = True
-#                             print(f"🚫 Excluded by name pattern {pat}: {file_path}")
-#                             break
-
-#                 if excluded:
-#                     continue
-
-#                 # 5) Passed all checks -> include
-#                 print(f"✅ Including file: {file_path}")
-#                 all_files.append(item)
-
-#             # Check for next page
-#             next_page_url = data.get('next')
-#             if next_page_url:
-#                 print(f"📄 Fetching next page: {next_page_url}")
-                
-#         except requests.exceptions.RequestException as e:
-#             print(f"❌ Error fetching files from Bitbucket: {e}")
-#             break
-
-#     print(f"📊 Total files after filtering: {len(all_files)}")
-#     return all_files
-
-
 def get_repo_files(workspace, repo, branch, token):
     """
     Get filtered files from a Bitbucket repository with recursive directory scanning
@@ -854,53 +702,6 @@ def get_repo_files(workspace, repo, branch, token):
     
     return filtered_files
 
-# def download_file(workspace, repo, path, token, branch="main"):
-#     """
-#     Download file content from Bitbucket repository
-    
-#     Args:
-#         workspace: Bitbucket workspace (username or team name)
-#         repo: Repository name
-#         path: File path in repository
-#         token: Bitbucket app password or access token
-#         branch: Branch name (default: "main")
-#     """
-#     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/{path}"
-#     headers = {"Authorization": f"Bearer {token}"}
-    
-#     response = requests.get(url, headers=headers, timeout=20)
-#     response.raise_for_status()
-    
-#     # Bitbucket returns raw file content directly, no base64 encoding
-#     return response.text
-
-# def download_file(workspace, repo, path, token, branch="main"):
-#     """
-#     Download file content from Bitbucket repository
-    
-#     Args:
-#         workspace: Bitbucket workspace (username or team name)
-#         repo: Repository name
-#         path: File path in repository
-#         token: Bitbucket app password or access token
-#         branch: Branch name (default: "main")
-#     """
-#     # URL encode the path to handle special characters
-#     encoded_path = quote(path, safe='')
-#     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo}/src/{branch}/{encoded_path}"
-#     headers = {"Authorization": f"Bearer {token}"}
-    
-#     response = requests.get(url, headers=headers, timeout=20)
-    
-#     if response.status_code == 404:
-#         # Try alternative endpoint for some file types
-#         alt_url = f"https://bitbucket.org/{workspace}/{repo}/raw/{branch}/{encoded_path}"
-#         response = requests.get(alt_url, headers=headers, timeout=20)
-    
-#     response.raise_for_status()
-    
-#     # Bitbucket returns raw file content directly for src endpoint
-#     return response.text
 
 def download_file(workspace, repo, path, token, branch="main"):
     """
@@ -1023,7 +824,7 @@ def detect_ecosystem(filename):
 ##--------XXXXX---------
 
 from datetime import datetime
-
+"""
 def save_sca_info(vulns, username, repo, branch, file_path, version,vuln_pack, email=EMAIL, platform="bitbucket"):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -1076,6 +877,106 @@ def save_sca_info(vulns, username, repo, branch, file_path, version,vuln_pack, e
     conn.commit()
     cursor.close()
     conn.close()
+"""
+
+from datetime import datetime
+
+def save_sca_info(vulns, username, repo, branch, file_path, version, vuln_pack, email=EMAIL, platform="bitbucket"):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        for vuln in vulns:
+            # CVE and CWE
+            cve = next((a for a in vuln.get("aliases", []) if a.startswith("CVE-")), vuln.get("id", ""))
+            cwe = ", ".join(vuln.get("database_specific", {}).get("cwe_ids", [])) or None
+            severity = vuln.get("database_specific", {}).get("severity", None) or vuln.get("severity", None) or "Unknown"
+
+            # Descriptions
+            description = vuln.get("details", "") or vuln.get("summary", "") or ""
+
+            # Vulnerability type / summary
+            vuln_type = vuln.get("summary") or vuln.get("id") or "SCA Vulnerability"
+
+            # Fix version (safe navigation)
+            fix_version = None
+            try:
+                for r in vuln.get("affected", [{}])[0].get("ranges", []):
+                    for e in r.get("events", []):
+                        if "fixed" in e:
+                            fix_version = e.get("fixed")
+                            break
+                    if fix_version:
+                        break
+            except Exception:
+                fix_version = None
+            if not fix_version:
+                fix_version = "Upgrade Recommended"
+
+            # Advice URLs
+            advice_urls = "\n".join(ref.get("url", "") for ref in vuln.get("references", []) if ref.get("url"))
+
+            suggested_fix = f"Upgrade to version {fix_version}.\n\nReferences:\n{advice_urls}"
+
+            affected_versions = ", ".join(vuln.get("affected", [{}])[0].get("versions", [])) or version or None
+
+            # Prepare values matching the column list exactly
+            insert_query = """
+                INSERT INTO sca_info (
+                    username, email, platform, repo_name, file_path, line_number,
+                    vulnerability_type, cwe, cve, severity, short_description,
+                    suggested_fix, vulnerable_code, patched_code,
+                    bad_practice, good_practice, issueId, branch, affected_version, vulnerable_package,
+                    created_at
+                ) VALUES (%s, %s, %s, %s, %s, %s,
+                          %s, %s, %s, %s, %s,
+                          %s, %s, %s,
+                          %s, %s, %s, %s, %s, %s,
+                          NOW())
+            """
+
+            # Provide values in the exact same order as columns above.
+            # Use None for fields we don't have (line_number, vulnerable_code, patched_code, bad_practice, good_practice)
+            values = (
+                username,                  # username
+                email,                     # email
+                platform,                  # platform
+                repo,                      # repo_name
+                file_path,                 # file_path
+                None,                      # line_number
+                vuln_type,                 # vulnerability_type
+                cwe,                       # cwe
+                cve,                       # cve
+                severity,                  # severity
+                description,               # short_description
+                suggested_fix,             # suggested_fix
+                None,                      # vulnerable_code
+                None,                      # patched_code
+                None,                      # bad_practice
+                None,                      # good_practice
+                vuln.get("id", ""),        # issueId
+                branch,                    # branch
+                affected_versions,         # affected_version
+                vuln_pack                  # vulnerable_package
+            )
+
+            cursor.execute(insert_query, values)
+
+        conn.commit()
+        print(f"✅ save_sca_info: inserted {len(vulns)} vuln(s) for {vuln_pack}")
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ save_sca_info DB error: {e}")
+        # optionally print full traceback for debugging:
+        import traceback; traceback.print_exc()
+    finally:
+        try:
+            cursor.close()
+        except:
+            pass
+        try:
+            conn.close()
+        except:
+            pass
 
 
 import time
@@ -1154,8 +1055,20 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email, 
 
             print(data)
 
-            if "vulns" in data:
-                # ✅ Pass email and platform to save_sca_info
+            # if "vulns" in data:
+            #     # ✅ Pass email and platform to save_sca_info
+            #     save_sca_info(
+            #         vulns=data["vulns"],
+            #         username=username,
+            #         repo=repo,
+            #         branch=branch,
+            #         file_path=file_path,
+            #         version=version,
+            #         email=EMAIL,
+            #         platform=platform,
+            #         vuln_pack=vuln_pack
+            #     )
+            if data.get("vulns"):
                 save_sca_info(
                     vulns=data["vulns"],
                     username=username,
@@ -1163,10 +1076,12 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email, 
                     branch=branch,
                     file_path=file_path,
                     version=version,
-                    email=EMAIL,
+                    email=email,
                     platform=platform,
-                    vuln_pack=vuln_pack
-                )
+                    vuln_pack=vuln_pack)
+                else:
+                    print(f"ℹ️ No vulnerabilities for {vuln_pack}")
+
         except Exception as e:
             print(f"❌ Error querying OSV for {package_name}@{version}: {e}")
 
@@ -1204,46 +1119,6 @@ def extract_dependencies(filename, content):
         print(f"❌ Failed to parse dependencies in {filename}: {e}")
         return []
 
-
-
-##--------XXXXX---------##--------XXXXX---------
-
-# def process_file(file, username, repo, branch, token, prompt_template,email=EMAIL,max_retries=2):
-#     path = file["path"]
-#     for attempt in range(1, max_retries + 1):
-#         try:
-#             print(f"📥 Downloading: {path} (Attempt {attempt})")
-#             print(email)
-#             content = download_file(username, repo, path, token, branch)
-
-#             # ✅ Run Dependency Scan First (for known files)
-#             if os.path.basename(path) in ["package.json", "requirements.txt", "pom.xml"]:
-#                 print(f"🔍 Running SCA for: {path}")
-#                 run_dependency_scan(path,content, username, repo, branch,email=email,platform="bitbucket")
-                
-#                 continue
-            
-
-#             print(f"🤖 Analyzing: {path}")
-#             analysis = analyze_code(content,prompt_template,github_username=username,repo_name=repo,branch_name=branch,repo_file_path=path)
-
-
-#             if not isinstance(analysis, dict):
-#                 print(f"❌ Skipping {path}: Invalid result")
-#                 return
-
-#             analysis["file_path"] = path
-#             print(f"💾 Saving analysis results for: {path}")
-#             categorize_and_save(analysis, github_username=username, repo_name=repo, branch_name=branch)
-
-#             time.sleep(random.uniform(5, 10))
-#             return f"✅ Processed: {path}"
-
-#         except Exception as e:
-#             print(f"❌ Error processing {path} (Attempt {attempt}): {str(e)}")
-#             if attempt == max_retries:
-#                 return f"❌ Failed after {max_retries} attempts: {path}"
-#             time.sleep(random.uniform(5, 10))
 
 
 def process_file(file, username, repo, branch, token, prompt_template, email=EMAIL, max_retries=2):
