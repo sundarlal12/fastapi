@@ -61,7 +61,55 @@ CATEGORY_TABLE_MAP = {
 }
 
 ALLOWED_EXTENSIONS = {
-    '.py', '.js', '.java', '.cpp', '.php', '.html', '.ts', '.rb', '.go', '.c', '.rs','.json', '.txt', '.xml'
+    # Python
+    '.py', '.pyw',
+    
+    # PHP & Frameworks
+    '.php', '.phtml', '.php3', '.php4', '.php5', '.php7', '.phps',
+    '.ctp',
+    
+    # ASP.NET
+    '.asp', '.aspx', '.ashx', '.asmx', '.ascx',
+    '.cs', '.vb',
+    
+    # JavaScript/TypeScript
+    '.js', '.jsx', '.mjs', '.cjs',
+    '.ts', '.tsx', '.mts', '.cts',
+    
+    # Java
+    '.java', '.jsp', '.jspx',
+    
+    # C/C++
+    '.c', '.cpp', '.cc', '.cxx', '.h', '.hpp',
+    
+    # Go
+    '.go',
+    
+    # Rust
+    '.rs',
+    
+    # Ruby
+    '.rb', '.erb',
+    
+    # HTML/Templates
+    '.html', '.htm',
+    '.ejs', '.j2', '.jinja', '.jinja2',
+    
+    # Shell Scripts
+    '.sh', '.bash', '.ps1', '.bat', '.cmd',
+    
+    # WebAssembly
+    '.wat', '.wasm',
+    
+    # DevOps/Infrastructure
+    '.dockerfile', '.dockerignore',
+    '.tf',
+    '.pp',
+    '.groovy',
+    
+    # Configuration
+    '.yml', '.yaml',
+    '.json', '.txt', '.xml'
 }
 
 EXCLUDED_PATTERNS = {
