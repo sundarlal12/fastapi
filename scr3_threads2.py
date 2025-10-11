@@ -435,6 +435,7 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
     github_style_path = f"{github_username}/{repo_name}/blob/{branch_name}/{repo_file_path}"
 
     created_at = datetime.now()
+    risk_analyzer = RiskAnalyzer()
 
 
     def generate_mongodb_id(repo_name, line_number, created_at):
@@ -453,7 +454,8 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
         # Ensure exactly 24 characters like MongoDB ObjectId
         mongodb_id = f"{timestamp_hex}{repo_hash}{random_part}"[:24]
         
-        return mongodb_id    
+        return mongodb_id   
+
 
     def normalize_issue(issue, category):
         if not isinstance(issue, dict):
@@ -473,7 +475,13 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
 
         # Generate MongoDB-style alphanumeric ID
         line_num = issue.get("line_number", 0)
-        mongodb_beacon_id = generate_mongodb_id(repo_name, line_num, created_at)        
+        mongodb_beacon_id = generate_mongodb_id(repo_name, line_num, created_at)    
+
+        risk_analysis = risk_analyzer.analyze_issue_risk(issue)   
+        ai_severity = issue.get("severity", "Medium")
+        risk_level = risk_analysis["risk_level"]
+        severity_order = {"Info",:0,"Low": 1, "Medium": 2, "High": 3, "Critical": 4}
+        final_severity = ai_severity if severity_order[ai_severity] >= severity_order[risk_level] else risk_level 
 
 
         base_issue = {
@@ -486,7 +494,9 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
             "vulnerability_type": issue.get("vulnerability_type") or issue.get("issue") or issue.get("issue_type"),
             "cwe": issue.get("cwe", "N/A"),
             "cve": issue.get("cve", ""),
-            "severity": issue.get("severity", "Medium"),
+            "severity": final_severity,
+            "risk_score": risk_analysis["risk_score"],
+            "risk_level": risk_analysis["risk_level"],
             "short_description": issue.get("description") or issue.get("short_description", ""),
             "suggested_fix": issue.get("suggested_fix", "Review the code and apply necessary validation/sanitization."),
             "created_at": datetime.now(),
