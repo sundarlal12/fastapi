@@ -2,12 +2,17 @@
 #Author: Sundar Lal Baror
 
 import tiktoken
+import string
+import secrets
+import json
+
+
 import sys
 import os
 import urllib.parse
 import base64
 import re
-import json
+
 import urllib.parse
 from json.decoder import JSONDecodeError
 
@@ -17,7 +22,7 @@ import base64
 import mysql.connector
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import json
+
 from datetime import datetime
 import yaml
 import regex as re
@@ -92,7 +97,7 @@ ALLOWED_EXTENSIONS = {
     '.rb', '.erb',
     
     # HTML/Templates
-    '.html', '.htm',
+    # '.html', '.htm',
     '.ejs', '.j2', '.jinja', '.jinja2',
     
     # Shell Scripts
