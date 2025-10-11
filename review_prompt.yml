@@ -130,6 +130,20 @@ review_template: |
   - Start immediately after the `def` or `class` line
   - Include a purpose, and (optionally) `@param`, `@returns`, or description tags
 
+  🔒 **ENHANCED OWASP MAPPING REQUIREMENTS:**
+
+  **OWASP 2021 → 2017 Cross-Reference:**
+  - A01:2021-Broken Access Control → A5:2017-Broken Access Control
+  - A02:2021-Cryptographic Failures → A3:2017-Sensitive Data Exposure
+  - A03:2021-Injection → A1:2017-Injection
+  - A04:2021-Insecure Design → (New in 2021)
+  - A05:2021-Security Misconfiguration → A6:2017-Security Misconfiguration
+  - A06:2021-Vulnerable Components → A9:2017-Using Components with Known Vulnerabilities
+  - A07:2021-Identification Auth Failures → A2:2017-Broken Authentication
+  - A08:2021-Software Data Integrity → A8:2017-Insecure Deserialization
+  - A09:2021-Security Logging Failures → A10:2017-Insufficient Logging & Monitoring
+  - A10:2021-Server-Side Request Forgery → (New in 2021)
+
   🚨 Ensure final output is VALID JSON only.
   🚨 DO NOT break any braces or brackets. Use a JSON validator before returning.
   ✅ Additional rules for your tool:

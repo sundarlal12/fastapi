@@ -381,6 +381,27 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
     repo_file_path = data.get("file_path", "")
     github_style_path = f"{github_username}/{repo_name}/blob/{branch_name}/{repo_file_path}"
 
+    created_at = datetime.now()
+
+
+    def generate_mongodb_id(repo_name, line_number, created_at):
+        """Generate MongoDB-style alphanumeric ID (24 characters)"""
+        # Create a base string from repo name, line number, and timestamp
+        base_string = f"{repo_name}_{line_number}_{created_at.timestamp()}"
+        
+        # Generate 24-character alphanumeric string similar to MongoDB ObjectId
+        alphabet = string.ascii_lowercase + string.digits
+        random_part = ''.join(secrets.choice(alphabet) for _ in range(16))
+        
+        # Combine with some meaningful parts to create 24-char ID
+        timestamp_hex = format(int(created_at.timestamp()), '08x')
+        repo_hash = format(abs(hash(repo_name)) % (10**8), '06x')
+        
+        # Ensure exactly 24 characters like MongoDB ObjectId
+        mongodb_id = f"{timestamp_hex}{repo_hash}{random_part}"[:24]
+        
+        return mongodb_id    
+
     def normalize_issue(issue, category):
         if not isinstance(issue, dict):
             return None
@@ -389,6 +410,17 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
             if isinstance(s, str):
                 return base64.b64encode(s.encode("utf-8")).decode("utf-8")
             return s
+
+
+        
+        def handle_array_field(field_data):
+            if isinstance(field_data, list):
+                return json.dumps(field_data)
+            return field_data
+
+        # Generate MongoDB-style alphanumeric ID
+        line_num = issue.get("line_number", 0)
+        mongodb_beacon_id = generate_mongodb_id(repo_name, line_num, created_at)        
 
 
         base_issue = {
@@ -407,12 +439,41 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
             "created_at": datetime.now(),
             "bad_practice": (issue.get("bad_practice", "")) if category in ["smelly_code", "malicious_code"] else None,
             "good_practice": issue.get("good_practice", "") if category in ["smelly_code", "malicious_code"] else None,
-            "issueId": issue.get("issue_id") or issue.get("id") or "",  # if available
-            "branch": branch_name
+            "issueId": issue.get("issue_id") or issue.get("id") or mongodb_beacon_id,  # if available
+            "branch": branch_name,
+
+            # NEW FIELDS with default NULL values
+
+            "owasp_2017": issue.get("owasp_2017"),
+            "owasp_2021": issue.get("owasp_2021"),
+            "reproduction_steps": handle_array_field(issue.get("reproduction_steps")),
+            "medium_vapt_summary": issue.get("medium_vapt_summary"),
+            "impact": handle_array_field(issue.get("impact")),
+            "remediation": handle_array_field(issue.get("remediation")),
+            "reference": handle_array_field(issue.get("references"))  # Note: 'references' in JSON vs 'reference' in DB
+
+
         }
+        # if category == "owasp_security":
+        #     base_issue["bad_practice"] = (issue.get("vulnerable_code", ""))
+        #     base_issue["good_practice"] = issue.get("patched_code", "")
+
+        # if category in ["smelly_code", "malicious_code"]:
+        #     base_issue["bad_practice"] = (issue.get("bad_practice", ""))
+        #     base_issue["good_practice"] = issue.get("good_practice", "")
+        # Handle category-specific field mappings
         if category == "owasp_security":
             base_issue["bad_practice"] = (issue.get("vulnerable_code", ""))
             base_issue["good_practice"] = issue.get("patched_code", "")
+            # Ensure VAPT fields are properly handled for owasp_security
+            if not base_issue["reproduction_steps"]:
+                base_issue["reproduction_steps"] = json.dumps([])
+            if not base_issue["impact"]:
+                base_issue["impact"] = json.dumps([])
+            if not base_issue["remediation"]:
+                base_issue["remediation"] = json.dumps([])
+            if not base_issue["reference"]:
+                base_issue["reference"] = json.dumps([])
 
         if category in ["smelly_code", "malicious_code"]:
             base_issue["bad_practice"] = (issue.get("bad_practice", ""))
@@ -876,10 +937,6 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email=N
             print(f"❌ Error querying OSV for {package_name}@{version}: {e}")
 """
 
-
-
-import time
-import requests
 
 MAX_RETRIES = 3
 RETRY_DELAY = 3  # seconds
