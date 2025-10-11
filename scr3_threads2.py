@@ -6,7 +6,7 @@ import string
 import secrets
 import json
 
-
+from risk_analyzer import RiskAnalyzer
 import sys
 import os
 import urllib.parse
