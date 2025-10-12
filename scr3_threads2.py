@@ -477,7 +477,7 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
         line_num = issue.get("line_number", 0)
         mongodb_beacon_id = generate_mongodb_id(repo_name, line_num, created_at)    
 
-        # risk_analysis = risk_analyzer.analyze_issue_risk(issue)   
+        risk_analysis = risk_analyzer.analyze_issue_risk(issue)   
         # ai_severity = issue.get("severity", "Medium")
         # risk_level = risk_analysis["risk_level"]
         # severity_order = {"Info":0,"Low": 1, "Medium": 2, "High": 3, "Critical": 4}
