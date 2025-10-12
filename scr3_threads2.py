@@ -477,11 +477,23 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
         line_num = issue.get("line_number", 0)
         mongodb_beacon_id = generate_mongodb_id(repo_name, line_num, created_at)    
 
-        risk_analysis = risk_analyzer.analyze_issue_risk(issue)   
+        # risk_analysis = risk_analyzer.analyze_issue_risk(issue)   
+        # ai_severity = issue.get("severity", "Medium")
+        # risk_level = risk_analysis["risk_level"]
+        # severity_order = {"Info":0,"Low": 1, "Medium": 2, "High": 3, "Critical": 4}
+        # #final_severity = ai_severity if severity_order[ai_severity] >= severity_order[risk_level] else risk_level 
+        # final_severity = ai_severity if ai_level >= risk_level_num else risk_level
+
         ai_severity = issue.get("severity", "Medium")
         risk_level = risk_analysis["risk_level"]
-        severity_order = {"Info":0,"Low": 1, "Medium": 2, "High": 3, "Critical": 4}
-        final_severity = ai_severity if severity_order[ai_severity] >= severity_order[risk_level] else risk_level 
+    
+        # FIX: Always use the HIGHEST severity
+        severity_order = {"Info": 0, "Low": 1, "Medium": 2, "High": 3, "Critical": 4}
+        ai_level = severity_order.get(ai_severity, 1)
+        risk_level_num = severity_order.get(risk_level, 1)
+    
+        # Use whichever is higher
+        final_severity = ai_severity if ai_level >= risk_level_num else risk_level
 
 
         base_issue = {
