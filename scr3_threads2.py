@@ -493,7 +493,7 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
         risk_level_num = severity_order.get(risk_level, 1)
     
         # Use whichever is higher
-        final_severity = ai_severity if ai_level >= risk_level_num else risk_level
+        final_severity = ai_severity if ai_level <= risk_level_num else risk_level
 
 
         base_issue = {
