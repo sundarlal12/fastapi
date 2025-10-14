@@ -132,7 +132,9 @@ EXCLUDED_PATTERNS = {
     "angular*.js",
     "vue*.js",
     "bootstrap*.js",
+    "*.bootstrap*.js",
     "popper*.js",
+    "*.popper*.js",
 
     # Common distribution/build/vendor directories (path-aware)
     "node_modules/*",
@@ -511,7 +513,7 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
             "risk_level": risk_analysis["risk_level"],
             "short_description": issue.get("description") or issue.get("short_description", ""),
             "suggested_fix": issue.get("suggested_fix", "Review the code and apply necessary validation/sanitization."),
-            "created_at": datetime.now(),
+            "created_at": created_at,
             "bad_practice": (issue.get("bad_practice", "")) if category in ["smelly_code", "malicious_code"] else None,
             "good_practice": issue.get("good_practice", "") if category in ["smelly_code", "malicious_code"] else None,
             "issueId": issue.get("issue_id") or issue.get("id") or mongodb_beacon_id,  # if available
