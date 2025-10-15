@@ -47,8 +47,8 @@ DB_CONFIG = {
     "user": os.getenv("DB_USERNAME"),
     "password": os.getenv("DB_PASSWORD"),
     "host": os.getenv("DB_HOST"),
-    "database": os.getenv("DB_NAME")
-}
+    "database": os.getenv("DB_NAME"),
+    "port": int(os.getenv("DB_PORT", "25060")) 
 
 CATEGORIES = [
     "dead_code", "docstring", "malicious_code",
