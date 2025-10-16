@@ -1,12 +1,15 @@
 import os
 from dotenv import load_dotenv
 import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, validator
 from typing import Optional, List
 from fastapi.middleware.cors import CORSMiddleware 
 import subprocess
 import uuid
+import psycopg2
 import re
 from enum import Enum
 
@@ -22,6 +25,7 @@ DB_CONFIG = {
     "port": int(os.getenv("DB_PORT","5432"))
 }
 
+DB_SCHEMA = os.getenv("DB_SCHEMA", "public")
 app = FastAPI()
 scan_status_store = {}
 
@@ -151,8 +155,56 @@ class ScanRequest(BaseModel):
 
 
 
+# def get_db_connection():
+#     return mysql.connector.connect(**DB_CONFIG)
+
+
 def get_db_connection():
-    return mysql.connector.connect(**DB_CONFIG)
+    conn = psycopg2.connect(**DB_CONFIG)
+    # Set the schema for this connection
+    with conn.cursor() as cur:
+        cur.execute(f'SET search_path TO {DB_SCHEMA};')
+    return conn
+
+# @app.post("/insert/{table_name}")
+# def insert_data(table_name: str, payload: List[Vulnerability]):
+#     allowed_tables = [
+#         "dead_code_info",
+#         "docstring_info",
+#         "malicious_code_info",
+#         "owasp_security_info",
+#         "secrets_info",
+#         "smelly_code_info"
+#     ]
+#     if table_name not in allowed_tables:
+#         raise HTTPException(status_code=400, detail="Invalid table name.")
+
+#     query = f"""
+#         INSERT INTO {table_name} (
+#             username, email, platform, repo_name, file_path, line_number, vulnerability_type,
+#             cwe, cve, severity, short_description, suggested_fix,
+#             bad_practice, good_practice
+#         ) VALUES (
+#             %(username)s, %(email)s, %(platform)s, %(repo_name)s, %(file_path)s, %(line_number)s,
+#             %(vulnerability_type)s, %(cwe)s, %(cve)s, %(severity)s, %(short_description)s,
+#             %(suggested_fix)s, %(bad_practice)s, %(good_practice)s
+#         )
+#     """
+
+#     db = get_db_connection()
+#     cursor = db.cursor()
+#     try:
+#         for item in payload:
+#             cursor.execute(query, item.dict())
+#         db.commit()
+#         return {"message": f"{len(payload)} records inserted","error":0}
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=500, detail=str(e))
+#     finally:
+#         cursor.close()
+#         db.close()
+
 
 @app.post("/insert/{table_name}")
 def insert_data(table_name: str, payload: List[Vulnerability]):
@@ -185,14 +237,13 @@ def insert_data(table_name: str, payload: List[Vulnerability]):
         for item in payload:
             cursor.execute(query, item.dict())
         db.commit()
-        return {"message": f"{len(payload)} records inserted","error":0}
+        return {"message": f"{len(payload)} records inserted", "error": 0}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         cursor.close()
         db.close()
-
 
 """
 @app.post("/doscan")
@@ -327,6 +378,61 @@ async def do_scan(request: ScanRequest):
 
 
 
+# @app.post("/get/{table_name}")
+# def get_data(table_name: str, request: GetDataRequest):
+#     allowed_tables = [
+#         "dead_code_info",
+#         "docstring_info",
+#         "malicious_code_info",
+#         "owasp_security_info",
+#         "secrets_info",
+#         "smelly_code_info",
+#         "sca_info",
+#         "infra_security_info"
+#     ]
+#     if table_name not in allowed_tables:
+#         raise HTTPException(status_code=400, detail="Invalid API call.")
+
+#     db = get_db_connection()
+#     cursor = db.cursor(dictionary=True)
+#     try:
+#         cursor.execute(f"""
+#             SELECT * FROM {table_name}
+#             WHERE username = %s AND platform = %s AND repo_name = %s AND branch = %s
+#         """, (request.username, request.platform, request.repo_name , request.branch))
+
+#         result = cursor.fetchall()
+
+#         # Exclude 'email' from each row
+#         filtered_result = [
+#             {k: v for k, v in row.items() if k != "email"} for row in result
+#         ]
+
+#         # Count severities
+#         severity_counts = {
+#             "critical": 0,
+#             "high": 0,
+#             "medium": 0,
+#             "low": 0,
+#             "informational": 0
+#         }
+
+#         for row in result:
+#             severity = (row.get("severity") or "").strip().lower()
+#             if severity in severity_counts:
+#                 severity_counts[severity] += 1
+
+#         return {
+#             "count": len(filtered_result),
+#             "severity_counts": severity_counts,
+#             "results": filtered_result
+#         }
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+#     finally:
+#         cursor.close()
+#         db.close()
+
 @app.post("/get/{table_name}")
 def get_data(table_name: str, request: GetDataRequest):
     allowed_tables = [
@@ -343,12 +449,12 @@ def get_data(table_name: str, request: GetDataRequest):
         raise HTTPException(status_code=400, detail="Invalid API call.")
 
     db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor(cursor_factory=RealDictCursor)  # <-- RealDictCursor for dict results
     try:
         cursor.execute(f"""
             SELECT * FROM {table_name}
             WHERE username = %s AND platform = %s AND repo_name = %s AND branch = %s
-        """, (request.username, request.platform, request.repo_name , request.branch))
+        """, (request.username, request.platform, request.repo_name, request.branch))
 
         result = cursor.fetchall()
 

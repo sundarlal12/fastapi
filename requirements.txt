@@ -8,3 +8,4 @@ pydantic
 PyYAML
 openai
 tiktoken
+psycopg2-binary
