@@ -5,7 +5,8 @@ import tiktoken
 import sys
 import os
 import urllib.parse
-
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import re
 import json
 

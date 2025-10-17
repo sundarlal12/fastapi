@@ -25,7 +25,11 @@ DB_CONFIG = {
     "port": int(os.getenv("DB_PORT","5432"))
 }
 
-DB_SCHEMA = os.getenv("DB_SCHEMA", "public")
+# DB_SCHEMA = os.getenv("DB_SCHEMA", "public")
+DB_PORT = int(os.getenv("DB_PORT", "5432"))
+DATABASE_URL = os.getenv("DATABASE_URL")
+DB_SCHEMA = os.getenv("DB_SCHEMA", "sastcode_schema")
+
 app = FastAPI()
 scan_status_store = {}
 
@@ -159,12 +163,25 @@ class ScanRequest(BaseModel):
 #     return mysql.connector.connect(**DB_CONFIG)
 
 
+# def get_db_connection():
+#     conn = psycopg2.connect(**DB_CONFIG)
+#     # Set the schema for this connection
+#     with conn.cursor() as cur:
+#         cur.execute(f'SET search_path TO {DB_SCHEMA};')
+#     return conn
+
 def get_db_connection():
-    conn = psycopg2.connect(**DB_CONFIG)
-    # Set the schema for this connection
-    with conn.cursor() as cur:
-        cur.execute(f'SET search_path TO {DB_SCHEMA};')
-    return conn
+    """
+    Create a connection to Supabase PostgreSQL using psycopg2.
+    Sets the search_path to your schema automatically.
+    """
+    try:
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor, connect_timeout=5, sslmode="require")
+        with conn.cursor() as cur:
+            cur.execute(f"SET search_path TO {DB_SCHEMA};")
+        return conn
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB unreachable: {e}")
 
 # @app.post("/insert/{table_name}")
 # def insert_data(table_name: str, payload: List[Vulnerability]):

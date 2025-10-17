@@ -302,6 +302,8 @@ import base64
 import requests
 import base64
 import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
