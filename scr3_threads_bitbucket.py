@@ -50,6 +50,7 @@ DB_CONFIG = {
     "host": os.getenv("DB_HOST"),
     "database": os.getenv("DB_NAME"),
     "port": int(os.getenv("DB_PORT", "25060")) 
+}
 
 CATEGORIES = [
     "dead_code", "docstring", "malicious_code",
@@ -59,6 +60,7 @@ CATEGORIES = [
 DB_PORT = int(os.getenv("DB_PORT", "5432"))
 DATABASE_URL = os.getenv("DATABASE_URL")
 DB_SCHEMA = os.getenv("DB_SCHEMA", "sastcode_schema")
+
 
 CATEGORY_TABLE_MAP = {
     "dead_code": "dead_code_info",
@@ -945,7 +947,7 @@ def save_sca_info(vulns, username, repo, branch, file_path, version, vuln_pack, 
 import time
 import requests
 
-MAX_RETRIES = 3
+MAX_RETRIES = 5
 RETRY_DELAY = 3  # seconds
 
 def query_osv_with_retry(payload):

@@ -918,7 +918,7 @@ def run_dependency_scan(file_path, file_content, username, repo, branch, email=N
 import time
 import requests
 
-MAX_RETRIES = 3
+MAX_RETRIES = 5
 RETRY_DELAY = 3  # seconds
 
 def query_osv_with_retry(payload):
