@@ -442,7 +442,7 @@ def analyze_code(code_content, prompt_template, github_username="", repo_name=""
     return {"status": "chunks_processed"}
 
 
-def categorize_and_save(data, github_username, repo_name, branch_name="main", email=EMAIL, platform="GitHub"):
+def categorize_and_save(data, github_username, repo_name, branch_name="main", email=EMAIL, platform="github"):
 
     #result = data["result"]
    
@@ -1171,7 +1171,7 @@ def process_file(file, username, repo, branch, token, prompt_template,email=EMAI
             # ✅ Run Dependency Scan First (for known files)
             if os.path.basename(path) in ["package.json", "requirements.txt", "pom.xml"]:
                 print(f"🔍 Running SCA for: {path}")
-                run_dependency_scan(path,content, username, repo, branch,email=email,platform="GitHub")
+                run_dependency_scan(path,content, username, repo, branch,email=email,platform="github")
                 
                 continue
             
