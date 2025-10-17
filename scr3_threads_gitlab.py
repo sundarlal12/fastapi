@@ -42,8 +42,13 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD"),
     "host": os.getenv("DB_HOST"),
     "database": os.getenv("DB_NAME"),
-     "port": int(os.getenv("DB_PORT", "25060")) 
+     "port": int(os.getenv("DB_PORT", "5432")) 
 }
+
+
+DB_PORT = int(os.getenv("DB_PORT", "5432"))
+DATABASE_URL = os.getenv("DATABASE_URL")
+DB_SCHEMA = os.getenv("DB_SCHEMA", "sastcode_schema")
 
 CATEGORIES = [
     "dead_code", "docstring", "malicious_code",
@@ -92,8 +97,23 @@ EXCLUDED_PATTERNS = {
 
 SPECIAL_FILES = {"package.json", "requirements.txt", "pom.xml"}
 
+# def get_db_connection():
+#     return mysql.connector.connect(**DB_CONFIG)
+
 def get_db_connection():
-    return mysql.connector.connect(**DB_CONFIG)
+    """
+    Create a connection to Supabase PostgreSQL using psycopg2.
+    Sets the search_path to your schema automatically.
+    """
+    try:
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor, connect_timeout=5, sslmode="require")
+        with conn.cursor() as cur:
+            cur.execute(f"SET search_path TO {DB_SCHEMA};")
+        return conn
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB unreachable: {e}")
+
+
 
 def load_prompt_template(path="review_prompt.yml"):
     with open(path, "r") as file:
