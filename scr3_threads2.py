@@ -147,6 +147,7 @@ EXCLUDED_PATTERNS = {
     "dist/*",
     "build/*",
     "out/*",
+    "__MACOSX/*"
 
 }
 
