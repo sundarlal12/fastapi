@@ -399,13 +399,15 @@ async def do_scan(request: ScanRequest):
 async def do_scan(request: ScanRequest):
     try:
         script_name = SCRIPT_MAP[request.platform.lower()]
+        scan_id = str(uuid.uuid4())
         cmd = [
             "python3",
             script_name,
             request.username,
             request.repo_name,
             request.branch,
-            request.platform
+            request.platform,
+            scan_id
         ]
 
         if request.include_files:
@@ -417,7 +419,7 @@ async def do_scan(request: ScanRequest):
             cmd.append(','.join(request.exclude_files))
         
         # Generate a unique scan ID
-        scan_id = str(uuid.uuid4())
+        #scan_id = str(uuid.uuid4())
         status = "in progress"
 
         # Store scan info in PostgreSQL
