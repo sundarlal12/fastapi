@@ -149,8 +149,8 @@ EXCLUDED_PATTERNS = {
     "out/*",
     "__MACOSX/*",
 
-    "fixtures/*",
-     "bower_components/*"
+    # "fixtures/*",
+    #  "bower_components/*"
 
 }
 
