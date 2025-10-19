@@ -1153,7 +1153,7 @@ def update_scan_status(scan_id, status="completed"):
     finally:
         cursor.close()
         conn.close()
-        
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: python scanner.py <username> <repo> [branch]")
@@ -1161,6 +1161,8 @@ def main():
 
     username, repo = sys.argv[1], sys.argv[2]
     branch = sys.argv[3] if len(sys.argv) > 3 else None
+    scan_id = sys.argv[5] if len(sys.argv) > 5 else None
+    
     print(f"🔍 Analyzing {username}/{repo}...")
 
 
