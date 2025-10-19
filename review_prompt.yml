@@ -48,7 +48,13 @@ review_template: |
 
   ✅ For `owasp_security`, detect **all OWASP Top 10 vulnerabilities**, including but not limited to:
   - SQL Injection
+  - File Inclusion via `file_get_contents` etc.
+  - Path Traversal  via `include`, `file_get_contents`, `fopen`,`@chmod($this->url, $this->filePermission);` etc.
   - Cross-Site Scripting (XSS)
+  - Insecure ECB Mode Encryption
+  - Information Exposure - Server Error Message
+  - XML External Entity (XXE) Injection
+  - Broken Authentication
   - Insecure Direct Object Reference (IDOR)
   - Cross-Site Request Forgery (CSRF)
   - Server-Side Request Forgery (SSRF)
@@ -90,6 +96,24 @@ review_template: |
   - Indicators of command-and-control (C2) communication
   - Any pattern of code that can lead to server compromise or SEO spam injection
 
+  ✅ Path Traversal, Local/Remote File Inclusion (LFI/RFI)
+  - Detect unsanitized user-controlled input used with file operations or include/require functions (`include`, `require`, `file_get_contents`, `open`, `readFile`, `fopen`, `java.io.File`, etc.).
+  - Detect interpolation or concatenation of user input into file paths (e.g., `"/uploads/" + user_input`, `include($_GET['page'])`).
+  - Flag path traversal patterns (e.g., `../`, `..\\`) when input is not validated or canonicalized.
+  - For LFI/RFI, identify the sink (include/require/exec of file contents) and the source (GET/POST/cookie/headers/filename upload).
+  - Provide CWE mapping (e.g., CWE-22: Path Traversal, CWE-98: Improper Control of Filename for Include/Require).
+  - Reproduction steps must demonstrate how to supply input to trigger traversal or file inclusion.
+  - Suggested fixes: canonicalize/normalize paths, restrict to a safe whitelist of filenames, use basename + mapping table, avoid direct include of user-controlled values, validate uploads, and enforce least-privilege file permissions.
+
+  ✅ Cryptographic Issues (strong detection rules)
+  - Detect use of weak or deprecated algorithms (MD5, SHA1 for signatures/hashing of secrets, RC4, DES, 3DES, ECB mode).
+  - Detect insecure cipher modes (e.g., AES-ECB), hardcoded IVs, reuse of IVs, or predictable IVs/nonces.
+  - Detect improper key management: hardcoded keys, keys stored in source, insufficient key length, use of symmetric keys where asymmetric required.
+  - Detect misuse of random: use of `rand()`/`Math.random()`/non-crypto RNGs for cryptographic purposes—recommend `os.urandom`, `secrets`, or `crypto.randomBytes`.
+  - Detect improper verification (e.g., comparing MACs with `==` instead of a constant-time compare).
+  - Detect insecure TLS/SSL usage (e.g., `verify=False`, disabled certificate checks).
+  - Map relevant CWEs (e.g., CWE-327 Weak Crypto, CWE-310 Cryptographic Issues).
+  - Suggested remediation: use modern algorithms (AES-GCM, ChaCha20-Poly1305, RSA-OAEP/PSS), proper key length, secure RNG, secure key storage (KMS/Secrets Manager), proper TLS verification, and constant-time comparisons.
   Suggested fields for malicious_code:
   - `line_number`
   - `vulnerability_type` (e.g., "Obfuscated PHP Webshell", "Base64 Encoded Malware", "WordPress SEO Spam Injector")

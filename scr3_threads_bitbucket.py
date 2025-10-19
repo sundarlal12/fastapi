@@ -98,7 +98,9 @@ EXCLUDED_PATTERNS = {
     "dist/*",
     "build/*",
     "out/*",
-    "__MACOSX/*"
+    "__MACOSX/*",
+     "fixtures/*",
+     "bower_components/*"
 
 }
 
@@ -1162,7 +1164,7 @@ def main():
     username, repo = sys.argv[1], sys.argv[2]
     branch = sys.argv[3] if len(sys.argv) > 3 else None
     scan_id = sys.argv[5] if len(sys.argv) > 5 else None
-    
+
     print(f"🔍 Analyzing {username}/{repo}...")
 
 
