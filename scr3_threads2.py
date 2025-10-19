@@ -1213,7 +1213,7 @@ def update_scan_status(scan_id, status="completed"):
         cursor.execute("""
             UPDATE sastcode_schema.scan_status
             SET status = %s, finished_at = NOW()
-            WHERE id = %s
+            WHERE scan_id = %s
         """, (status, scan_id))
         conn.commit()
         print(f"✅ scan_status updated to '{status}' for scan_id {scan_id}")

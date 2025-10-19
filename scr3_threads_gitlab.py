@@ -1083,6 +1083,31 @@ def process_file(file, username, repo, branch, token, prompt_template,email=EMAI
                 return f"❌ Failed after {max_retries} attempts: {path}"
             time.sleep(random.uniform(5, 10))
 
+def update_scan_status(scan_id, status="completed"):
+    """
+    Update the scan_status in sastcode_schema.scan_status after SCA scan finishes.
+    
+    Args:
+        scan_id (int): The ID of the scan to update.
+        status (str): Status to set, e.g., 'completed' or 'failed'.
+    """
+    conn = get_db_connection()  # make sure this connects to the right DB
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE sastcode_schema.scan_status
+            SET status = %s, finished_at = NOW()
+            WHERE scan_id = %s
+        """, (status, scan_id))
+        conn.commit()
+        print(f"✅ scan_status updated to '{status}' for scan_id {scan_id}")
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ Error updating scan_status: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: python scanner.py <username> <repo> [branch]")
@@ -1090,6 +1115,7 @@ def main():
 
     username, repo = sys.argv[1], sys.argv[2]
     branch = sys.argv[3] if len(sys.argv) > 3 else None
+    scan_id = sys.argv[5] if len(sys.argv) > 5 else None
     print(f"🔍 Analyzing {username}/{repo}...")
 
     try:
@@ -1115,8 +1141,15 @@ def main():
                 print(future.result())
 
         print("✅ All files processed.")
+
+        if scan_id:
+            update_scan_status(scan_id, status="completed")
+        else:
+            print("⚠️ No scan_id provided, cannot update scan_status.")
     except Exception as e:
         print(f"❌ Fatal error: {e}")
+        if scan_id:
+            update_scan_status(scan_id, status="failed")
 
 if __name__ == "__main__":
     main()
