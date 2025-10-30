@@ -10,7 +10,7 @@ import re
 import json
 import urllib.parse
 from json.decoder import JSONDecodeError
-
+from risk_analyzer import RiskAnalyzer
 import fnmatch
 import requests
 import base64
@@ -402,6 +402,29 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
     #repo_file_path = data["file_path"]  # e.g., "src/app.js"
     repo_file_path = data.get("file_path", "")
     github_style_path = f"{github_username}/{repo_name}/blob/{branch_name}/{repo_file_path}"
+    
+    created_at = datetime.now()
+    risk_analyzer = RiskAnalyzer()
+
+    def generate_mongodb_id(repo_name, line_number, created_at):
+        """Generate MongoDB-style alphanumeric ID (24 characters)"""
+        # Create a base string from repo name, line number, and timestamp
+        base_string = f"{repo_name}_{line_number}_{created_at.timestamp()}"
+        
+        # Generate 24-character alphanumeric string similar to MongoDB ObjectId
+        alphabet = string.ascii_lowercase + string.digits
+        random_part = ''.join(secrets.choice(alphabet) for _ in range(16))
+        
+        # Combine with some meaningful parts to create 24-char ID
+        timestamp_hex = format(int(created_at.timestamp()), '08x')
+        repo_hash = format(abs(hash(repo_name)) % (10**8), '06x')
+        
+        # Ensure exactly 24 characters like MongoDB ObjectId
+        mongodb_id = f"{timestamp_hex}{repo_hash}{random_part}"[:24]
+        
+        return mongodb_id       
+
+
 
     def normalize_issue(issue, category):
         if not isinstance(issue, dict):
@@ -411,6 +434,55 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
             if isinstance(s, str):
                 return base64.b64encode(s.encode("utf-8")).decode("utf-8")
             return s
+
+        def handle_array_field(field_data):
+            if isinstance(field_data, list):
+                return json.dumps(field_data)
+            return field_data
+
+        # Generate MongoDB-style alphanumeric ID
+        line_num = issue.get("line_number", 0)
+        mongodb_beacon_id = generate_mongodb_id(repo_name, line_num, created_at)    
+
+        risk_analysis = risk_analyzer.analyze_issue_risk(issue)   
+        # ai_severity = issue.get("severity", "Medium")
+        # risk_level = risk_analysis["risk_level"]
+        # severity_order = {"Info":0,"Low": 1, "Medium": 2, "High": 3, "Critical": 4}
+        # #final_severity = ai_severity if severity_order[ai_severity] >= severity_order[risk_level] else risk_level 
+        # final_severity = ai_severity if ai_level >= risk_level_num else risk_level
+
+        ai_severity = issue.get("severity", "Medium")
+        risk_level = risk_analysis["risk_level"]
+    
+        # FIX: Always use the HIGHEST severity
+        severity_order = {"Info": 0, "Low": 1, "Medium": 2, "High": 3, "Critical": 4}
+        ai_level = severity_order.get(ai_severity, 1)
+        risk_level_num = severity_order.get(risk_level, 1)
+    
+        # Use whichever is higher
+        final_severity = ai_severity if ai_level <= risk_level_num else risk_level
+
+
+
+        # base_issue = {
+        #     "username": github_username,
+        #     "email": email,
+        #     "platform": platform,
+        #     "repo_name": repo_name,
+        #     "file_path": repo_file_path,
+        #     "line_number": issue.get("line_number"),
+        #     "vulnerability_type": issue.get("vulnerability_type") or issue.get("issue") or issue.get("issue_type"),
+        #     "cwe": issue.get("cwe", "N/A"),
+        #     "cve": issue.get("cve", ""),
+        #     "severity": issue.get("severity", "Medium"),
+        #     "short_description": issue.get("description") or issue.get("short_description", ""),
+        #     "suggested_fix": issue.get("suggested_fix", "Review the code and apply necessary validation/sanitization."),
+        #     "created_at": datetime.now(),
+        #     "bad_practice": (issue.get("bad_practice", "")) if category in ["smelly_code", "malicious_code"] else None,
+        #     "good_practice": issue.get("good_practice", "") if category in ["smelly_code", "malicious_code"] else None,
+        #     "issueId": issue.get("issue_id") or issue.get("id") or "",  # if available
+        #     "branch": branch_name
+        # }
 
 
         base_issue = {
@@ -423,18 +495,54 @@ def categorize_and_save(data, github_username, repo_name, branch_name="main", em
             "vulnerability_type": issue.get("vulnerability_type") or issue.get("issue") or issue.get("issue_type"),
             "cwe": issue.get("cwe", "N/A"),
             "cve": issue.get("cve", ""),
-            "severity": issue.get("severity", "Medium"),
+            "severity": final_severity,
+            "risk_score": risk_analysis["risk_score"],
+            "risk_level": risk_analysis["risk_level"],
             "short_description": issue.get("description") or issue.get("short_description", ""),
             "suggested_fix": issue.get("suggested_fix", "Review the code and apply necessary validation/sanitization."),
-            "created_at": datetime.now(),
+            "created_at": created_at,
             "bad_practice": (issue.get("bad_practice", "")) if category in ["smelly_code", "malicious_code"] else None,
             "good_practice": issue.get("good_practice", "") if category in ["smelly_code", "malicious_code"] else None,
-            "issueId": issue.get("issue_id") or issue.get("id") or "",  # if available
-            "branch": branch_name
+            "issueId": issue.get("issue_id") or issue.get("id") or mongodb_beacon_id,  # if available
+            "branch": branch_name,
+
+            # NEW FIELDS with default NULL values
+
+            "owasp_2017": issue.get("owasp_2017"),
+            "owasp_2021": issue.get("owasp_2021"),
+            "reproduction_steps": handle_array_field(issue.get("reproduction_steps")),
+            "medium_vapt_summary": issue.get("medium_vapt_summary"),
+            "impact": handle_array_field(issue.get("impact")),
+            "remediation": handle_array_field(issue.get("remediation")),
+            "reference": handle_array_field(issue.get("references"))  # Note: 'references' in JSON vs 'reference' in DB
+
+
         }
+
+
+        # if category == "owasp_security":
+        #     base_issue["bad_practice"] = (issue.get("vulnerable_code", ""))
+        #     base_issue["good_practice"] = issue.get("patched_code", "")
+
+        # if category in ["smelly_code", "malicious_code"]:
+        #     base_issue["bad_practice"] = (issue.get("bad_practice", ""))
+        #     base_issue["good_practice"] = issue.get("good_practice", "")
+
+
+
+
         if category == "owasp_security":
             base_issue["bad_practice"] = (issue.get("vulnerable_code", ""))
             base_issue["good_practice"] = issue.get("patched_code", "")
+            # Ensure VAPT fields are properly handled for owasp_security
+            if not base_issue["reproduction_steps"]:
+                base_issue["reproduction_steps"] = json.dumps([])
+            if not base_issue["impact"]:
+                base_issue["impact"] = json.dumps([])
+            if not base_issue["remediation"]:
+                base_issue["remediation"] = json.dumps([])
+            if not base_issue["reference"]:
+                base_issue["reference"] = json.dumps([])
 
         if category in ["smelly_code", "malicious_code"]:
             base_issue["bad_practice"] = (issue.get("bad_practice", ""))
