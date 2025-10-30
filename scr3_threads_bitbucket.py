@@ -4,6 +4,8 @@
 import tiktoken
 import sys
 import os
+import string
+import secrets
 import urllib.parse
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -84,7 +86,7 @@ EXCLUDED_PATTERNS = {
     "node_modules/*",# skip node_modules entirely if present
   
 
-
+  "*.md",
 
     "react*.js",
     "angular*.js",

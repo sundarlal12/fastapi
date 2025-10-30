@@ -129,7 +129,7 @@ EXCLUDED_PATTERNS = {
 
     "vendor/*",      # anything in vendor folder
     "node_modules/*",# skip node_modules entirely if present
-  
+    "*.md",
 
 
 

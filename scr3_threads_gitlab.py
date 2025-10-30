@@ -6,6 +6,8 @@ import sys
 import os
 import urllib.parse
 import base64
+import string
+import secrets
 import re
 import json
 import urllib.parse
@@ -76,6 +78,7 @@ EXCLUDED_PATTERNS = {
     "vendor/*",      # anything in vendor folder
     "node_modules/*",# skip node_modules entirely if present
   
+  "*.md",
 
 
 
