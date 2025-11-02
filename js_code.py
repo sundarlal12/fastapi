@@ -1,63 +1,3 @@
-# #!/usr/bin/env python3
-# import sys
-# from js_finder_spider import js_finder_by_domain
-
-# def main():
-#     if len(sys.argv) < 2:
-#         print("\nUsage: python run_js_finder.py <url> [--with-sources]\n")
-#         print("Example:")
-#         print("  python run_js_finder.py https://app.matterai.so")
-#         print("  python run_js_finder.py https://app.matterai.so --with-sources\n")
-#         sys.exit(1)
-
-#     url = sys.argv[1]
-#     js_urls = js_finder_by_domain(url, workers=24, max_depth=5)
-#     print(js_urls)
-
-
-# if __name__ == "__main__":
-#     main()
-
-#!/usr/bin/env python3
-# import sys
-# import subprocess
-# import os
-# from js_finder_spider import js_finder_by_domain
-
-# def main():
-#     if len(sys.argv) < 3:
-#         print("\nUsage: python run_js_finder.py <url> <scan_id>\n")
-#         print("Example:")
-#         print("  python run_js_finder.py https://app.matterai.so SCAN123\n")
-#         sys.exit(1)
-
-#     url = sys.argv[1]
-#     scan_id = sys.argv[2]
-
-#     print(f"\n🔍 Crawling: {url}\n")
-#     js_urls = js_finder_by_domain(url, workers=24, max_depth=5)
-#     print(f"✅ Found {len(js_urls)} JS URLs")
-
-#     # Save URLs into a temporary file for jsDownloader.py
-#     os.makedirs("tmp", exist_ok=True)
-#     url_list_file = f"tmp/{scan_id}_urls.txt"
-#     with open(url_list_file, "w") as f:
-#         f.write("\n".join(js_urls))
-
-#     print("\n⬇️ Running jsDownloader.py ...\n")
-#     subprocess.run(["python3", "jsDownloader.py", url_list_file, scan_id])
-
-#     print("\n✨ Running jsBeautifier.py ...\n")
-#     subprocess.run(["python3", "jsBeautifier.py", scan_id])
-
-#     print("\n✅ All steps completed!\n")
-#     print(f"📂 Results saved in folder: {scan_id}/")
-
-# if __name__ == "__main__":
-#     main()
-
-
-
 #!/usr/bin/env python3
 import sys
 import subprocess
@@ -67,9 +7,9 @@ from js_finder_spider import js_finder_by_domain
 
 def main():
     if len(sys.argv) < 3:
-        print("\nUsage: python run_js_finder.py <url> <scan_id>\n")
+        print("\nUsage: python3 js_code.py <url> <scan_id>\n")
         print("Example:")
-        print("  python run_js_finder.py https://app.matterai.so SCAN123\n")
+        print("  python3 js_code.py https://app.matterai.so SCAN123\n")
         sys.exit(1)
 
     url = sys.argv[1]

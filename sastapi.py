@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import subprocess
 import uuid
 import psycopg2
+import threading
 import re
 from enum import Enum
 
@@ -162,7 +163,7 @@ def insert_data(table_name: str, payload: List[Vulnerability]):
         cursor.close()
         db.close()
 
-
+"""
 @app.post("/doscan")
 async def do_scan(request: ScanRequest):
     try:
@@ -216,6 +217,121 @@ async def do_scan(request: ScanRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error launching scan: {str(e)}")
     
+    except Exception as outer_e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(outer_e)}")
+"""
+
+
+
+@app.post("/doscan")
+async def do_scan(request: ScanRequest):
+    try:
+        platform = request.platform.lower()
+
+        # --- pick script / scan_id
+        script_name = SCRIPT_MAP[platform]
+        if platform in {"web", "webapp"}:
+            # special format for web crawl pipeline
+            scan_id = f"scan_id_{uuid.uuid4().hex}"
+        else:
+            scan_id = str(uuid.uuid4())
+
+        # --- base command (for non-web platforms)
+        cmd = [
+            "python3",
+            script_name,
+            request.username,
+            request.repo_name,
+            request.branch,
+            request.platform,
+            scan_id
+        ]
+        if request.include_files:
+            cmd.append("--include")
+            cmd.append(','.join(request.include_files))
+        if request.exclude_files:
+            cmd.append("--exclude")
+            cmd.append(','.join(request.exclude_files))
+
+        # --- store initial scan_status
+        status = "in progress"
+        db = get_db_connection()
+        cursor = db.cursor()
+        try:
+            cursor.execute(
+                """
+                INSERT INTO scan_status (scan_id, username, repo_name, branch, platform, status, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, NOW())
+                """,
+                (scan_id, request.username, request.repo_name, request.branch, platform, status)
+            )
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f"DB insert error: {str(e)}")
+        finally:
+            cursor.close()
+            db.close()
+
+        # --- helper to flip status from this process
+        def _update_status(new_status: str, error_message: str = None):
+            _db = get_db_connection()
+            _cur = _db.cursor()
+            try:
+                if error_message:
+                    _cur.execute(
+                        "UPDATE scan_status SET status=%s, error_message=%s, finished_at=NOW() WHERE scan_id=%s",
+                        (new_status, error_message[:1000], scan_id)
+                    )
+                else:
+                    _cur.execute(
+                        "UPDATE scan_status SET status=%s, finished_at=NOW() WHERE scan_id=%s",
+                        (new_status, scan_id)
+                    )
+                _db.commit()
+            except Exception as ex:
+                _db.rollback()
+                print(f"[scan_status] update failed: {ex}")
+            finally:
+                _cur.close()
+                _db.close()
+
+        if platform in {"web", "webapp"}:
+            # Run two-step pipeline in background: js_code.py then WebPentestScanner.py
+            def _runner():
+                try:
+                    # Step 1: crawl+download+beautify into scan_id_*/ folder
+                    rc1 = subprocess.call([
+                        "python3", "js_code.py", request.repo_name, scan_id
+                    ])
+                    if rc1 != 0:
+                        _update_status("failed", f"js_code.py exited with {rc1}")
+                        return
+
+                    # Step 2: analyze downloaded folder
+                    rc2 = subprocess.call([
+                        "python3", "WebPentestScanner.py",
+                        request.username, scan_id, request.repo_name
+                    ])
+                    if rc2 != 0:
+                        _update_status("failed", f"WebPentestScanner.py exited with {rc2}")
+                        return
+
+                    # If the scanner didn’t flip it, mark completed here
+                    _update_status("completed")
+                except Exception as e:
+                    _update_status("failed", f"pipeline error: {e}")
+
+            threading.Thread(target=_runner, daemon=True).start()
+            return {"status": "Scan started", "scan_id": scan_id, "pipeline": "web"}
+
+        # --- non-web platforms: fire the single script as before
+        try:
+            subprocess.Popen(cmd)  # your original behavior
+            return {"status": "Scan started", "scan_id": scan_id, "pipeline": "repo"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error launching scan: {str(e)}")
+
     except Exception as outer_e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(outer_e)}")
 
