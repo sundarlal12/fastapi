@@ -163,63 +163,66 @@ def insert_data(table_name: str, payload: List[Vulnerability]):
         cursor.close()
         db.close()
 
-"""
-@app.post("/doscan")
-async def do_scan(request: ScanRequest):
-    try:
-        script_name = SCRIPT_MAP[request.platform.lower()]
-        scan_id = str(uuid.uuid4())
-        cmd = [
-            "python3",
-            script_name,
-            request.username,
-            request.repo_name,
-            request.branch,
-            request.platform,
-            scan_id
-        ]
 
-        if request.include_files:
-            cmd.append("--include")
-            cmd.append(','.join(request.include_files))
+# @app.post("/doscan")
+# async def do_scan(request: ScanRequest):
+#     try:
+#         script_name = SCRIPT_MAP[request.platform.lower()]
+#         scan_id = str(uuid.uuid4())
+#         cmd = [
+#             "python3",
+#             script_name,
+#             request.username,
+#             request.repo_name,
+#             request.branch,
+#             request.platform,
+#             scan_id
+#         ]
 
-        if request.exclude_files:
-            cmd.append("--exclude")
-            cmd.append(','.join(request.exclude_files))
+#         if request.include_files:
+#             cmd.append("--include")
+#             cmd.append(','.join(request.include_files))
+
+#         if request.exclude_files:
+#             cmd.append("--exclude")
+#             cmd.append(','.join(request.exclude_files))
         
-        # Generate a unique scan ID
-        #scan_id = str(uuid.uuid4())
-        status = "in progress"
+#         # Generate a unique scan ID
+#         #scan_id = str(uuid.uuid4())
+#         status = "in progress"
 
-        # Store scan info in PostgreSQL
-        db = get_db_connection()
-        cursor = db.cursor()
-        try:
-            cursor.execute(
-                f"""
-                INSERT INTO scan_status (scan_id, username, repo_name, branch, platform, status)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                """,
-                (scan_id, request.username, request.repo_name, request.branch, request.platform, status)
-            )
-            db.commit()
-        except Exception as e:
-            db.rollback()
-            raise HTTPException(status_code=500, detail=f"DB insert error: {str(e)}")
-        finally:
-            cursor.close()
-            db.close()
+#         # Store scan info in PostgreSQL
+#         db = get_db_connection()
+#         cursor = db.cursor()
+#         try:
+#             cursor.execute(
+#                 f"""
+#                 INSERT INTO scan_status (scan_id, username, repo_name, branch, platform, status)
+#                 VALUES (%s, %s, %s, %s, %s, %s)
+#                 """,
+#                 (scan_id, request.username, request.repo_name, request.branch, request.platform, status)
+#             )
+#             db.commit()
+#         except Exception as e:
+#             db.rollback()
+#             raise HTTPException(status_code=500, detail=f"DB insert error: {str(e)}")
+#         finally:
+#             cursor.close()
+#             db.close()
 
-        # Start the scan process
-        try:
-            subprocess.Popen(cmd)
-            return {"status": "Scan started", "scan_id": scan_id}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error launching scan: {str(e)}")
+#         # Start the scan process
+#         try:
+#             subprocess.Popen(cmd)
+#             return {"status": "Scan started", "scan_id": scan_id}
+#         except Exception as e:
+#             raise HTTPException(status_code=500, detail=f"Error launching scan: {str(e)}")
     
-    except Exception as outer_e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(outer_e)}")
-"""
+#     except Exception as outer_e:
+#         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(outer_e)}")
+
+
+
+
 
 
 
