@@ -9,3 +9,16 @@ PyYAML
 openai
 tiktoken
 psycopg2-binary
+aiohttp
+aiofiles
+tqdm
+playwright
+jsbeautifier
+beautifulsoup4
+lxml
+pyyaml
+regex
+urllib3
+concurrent-log-handler
+httpx
+xmltodict
