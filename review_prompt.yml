@@ -6,7 +6,6 @@ review_template: |
   - "secrets"  ⬅️ Should include all hardcoded keys, credentials, tokens, passwords, API secrets, SSH keys, certificates, etc.
   - "owasp_security"
   - "cve_lookup"
-  - "docstring"
   - "dead_code"
   - "smelly_code"
   - "malicious_code"
@@ -39,7 +38,7 @@ review_template: |
   - `short_description`: A short summary of the issue in 150 words atleast
   - `bad_practice`: Not more than 100 words
   - `vulnerable_code`: Not more than 100 words
-  - `suggested_fix`: A recommended fix or mitigation. For docstring issues, generate a valid docstring in `/** ... */` format
+  - `suggested_fix`: A recommended fix or mitigation in 10 to 100 words.
   - `vulnerable_code`: The code that introduces the vulnerability
   - `patched_code`: The code after the vulnerability has been mitigated or fixed — **must be a concrete code snippet** (see Good_practice requirements below)
   - `owasp_2017`: OWASP 2017 category (if applicable)
@@ -64,9 +63,6 @@ review_template: |
       - https://attack.mitre.org/
     - Example `references` item (acceptable): `"https://portswigger.net/web-security/csrf"` (must be a working URL).
   - These fields must appear in the JSON exactly as named and must be non-empty arrays (where stated).
-  
-  ✅ For `docstring`, use this pattern for suggested_fix:
-  - Return a proper structured docstring using `/** ... */` syntax with tags like `@param`, `@returns`, and a brief description with at least 100 words.
 
   ✅ For `smelly_code`, include:
   - `suggested_fix`: Brief description of the issue and why it's problematic
@@ -173,13 +169,6 @@ review_template: |
   - Only flag vulnerabilities if user-controlled input flows unsanitized to a dangerous sink (e.g., SQL query, DOM injection, shell execution, HTTP request, file path).
   - Avoid static, harmless patterns or internal config strings.
 
-  ✅ Docstring Detection:
-  - Detect classes, methods, or functions missing proper docstrings.
-  - Ignore inline comments or block comments not placed directly after `def` or `class`.
-  - A valid docstring must:
-  - Be in `"""` or `'''` format
-  - Start immediately after the `def` or `class` line
-  - Include a purpose, and (optionally) `@param`, `@returns`, or description tags
 
   🔒 **ENHANCED OWASP MAPPING REQUIREMENTS:**
 
@@ -253,16 +242,7 @@ review_template: |
   }
       ]
     },
-    "docstring": {
-      "./src/auth.js": [
-        {
-         "short_description": "Missing docstring for method 'process_filter'.",
-         "suggested_fix": "\"\"\"\nProcesses input filters.\n\n@param filter: The filter input object\n@returns: True if valid, else False\n\"\"\"",
-         "bad_practice": "def process_filter(filter):\n    return filter is not None",
-         "good_practice": "def process_filter(filter):\n    \"\"\"\n    Processes input filters.\n\n    @param filter: The filter input object\n    @returns: True if valid, else False\n    \"\"\"\n    return filter is not None"
-          }
-      ]
-    },
+   
      "smelly_code": {
       "./src/main.js": [
         {
