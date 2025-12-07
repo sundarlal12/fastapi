@@ -90,27 +90,27 @@ def get_geonode_proxy():
     }
 
 
-import requests
-SESSION = requests.Session()
+# import requests
+# SESSION = requests.Session()
 
-def fetch_html(url: str) -> str:
-    try:
-        proxies = get_geonode_proxy()  # 👈 rotating residential IP
+# def fetch_html(url: str) -> str:
+#     try:
+#         proxies = get_geonode_proxy()  # 👈 rotating residential IP
 
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/123.0.0 Safari/537.36"
-            )
-        }
+#         headers = {
+#             "User-Agent": (
+#                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+#                 "AppleWebKit/537.36 (KHTML, like Gecko) "
+#                 "Chrome/123.0.0 Safari/537.36"
+#             )
+#         }
 
-        resp = SESSION.get(url, headers=headers, proxies=proxies, timeout=30)
-        resp.raise_for_status()
-        return resp.text
+#         resp = SESSION.get(url, headers=headers, proxies=proxies, timeout=30)
+#         resp.raise_for_status()
+#         return resp.text
 
-    except Exception as e:
-        return f"[ERROR fetching HTML] {e}"
+#     except Exception as e:
+#         return f"[ERROR fetching HTML] {e}"
 
 
 
@@ -266,10 +266,10 @@ def main():
     print(f"\n🔍 Crawling: {url}\n")
 
 
-    html_content = fetch_html(url)
-    print("\n📄 FULL HTML CONTENT BELOW:\n")
-    print(html_content)
-    print("\n---------- END OF HTML ----------\n")
+    # html_content = fetch_html(url)
+    # print("\n📄 FULL HTML CONTENT BELOW:\n")
+    # print(html_content)
+    # print("\n---------- END OF HTML ----------\n")
 
     js_urls = js_finder_by_domain(url, workers=24, max_depth=5)
     print(f"✅ Found {len(js_urls)} JS URLs")
