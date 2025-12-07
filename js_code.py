@@ -9,7 +9,7 @@
 #     if len(sys.argv) < 3:
 #         print("\nUsage: python3 js_code.py <url> <scan_id>\n")
 #         print("Example:")
-#         print("  python3 js_code.py https://app.matterai.so SCAN123\n")
+#         print("  python3 js_code.py https://vaptlabs.com SCAN123\n")
 #         sys.exit(1)
 
 #     url = sys.argv[1]
@@ -155,8 +155,8 @@ def main():
     if len(sys.argv) < 3:
         print("\nUsage: python3 js_code.py <url-or-domain> <scan_id> [--aggressive-cleanup]\n")
         print("Example:")
-        print("  python3 js_code.py app.matterai.so SCAN123\n")
-        print("  python3 js_code.py https://app.matterai.so SCAN123 --aggressive-cleanup\n")
+        print("  python3 js_code.py vaptlabs.com SCAN123\n")
+        print("  python3 js_code.py https://vaptlabs.com SCAN123 --aggressive-cleanup\n")
         sys.exit(1)
 
     # Parse args

@@ -51,7 +51,7 @@ review_template: |
 
   ✅ NEW: For `owasp_security` issues (VAPT-style), each issue object **must also** include these additional fields:
   - `reproduction_steps`: Ordered list of short steps required to reproduce the issue (array of strings). Each step should be concise and actionable.
-  - `medium_vapt_summary`: A short VAPT-style summary (one paragraph, ~40-80 words) suitable for medium-level reporting channels.
+  - `medium_vapt_summary`: A short VAPT-style summary (one paragraph, ~40-80 words) suitable for medium-level reporting channels. Summary must start with as `During security Assessment for` .
   - `impact`: Array of exactly 5 unique impact bullets (each a short sentence). Example: ["Unauthorized data exposure", "Account takeover risk", ...]
   - `remediation`: Array of exactly 5 unique remediation bullets (each a short sentence). Example: ["Use parameterized queries", "Validate input on server-side", ...]
   - `references`: Array of 5 unique working reference links or identifiers (full URLs preferred). Example: ["https://owasp.org/...", "CVE-2024-XXXXX", ...]
@@ -213,7 +213,7 @@ review_template: |
     "owasp_2017": "A1: Injection",
     "owasp_2021": "A03: Injection",
     "reproduction_steps": [
-      "Open the login endpoint with a POST request.",
+    "Open the application with a valid login credentials.", 
       "Send payload username=\\\"' OR 1=1;--\\\" in the username field.",
       "Observe database dump or successful bypass."
     ],
@@ -237,7 +237,7 @@ review_template: |
       "https://owasp.org/www-project-top-ten/2021/A03_2021-Injection",
       "https://cwe.mitre.org/data/definitions/89.html",
       "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
-      "https://example.com/patch-guidance"
+      "https://portswigger.com/patch-guidance"
     ]
   }
       ]

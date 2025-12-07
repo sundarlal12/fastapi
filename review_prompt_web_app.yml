@@ -6,10 +6,24 @@ review_template: |
   - "secrets"  ⬅️ Should include all hardcoded keys, credentials, tokens, passwords, API secrets, SSH keys, certificates, etc.
   - "owasp_security"
   - "cve_lookup"
-  - "docstring"
   - "dead_code"
   - "smelly_code"
   - "malicious_code"
+
+   ✅ SECRET DETECTION RULES (IMPORTANT UPDATE)
+
+  The `secrets` category must detect only **real hardcoded secrets**, not key names or lookup calls.
+
+  ❌ Do NOT flag these (false positives):
+  - `service_auth_key = session.values.get("service_auth_key")`
+  - `api_key = config["GITHUB_TOKEN"]`
+  - `token = os.environ.get("AUTH_TOKEN")`
+  - `key = request.headers.get("x-api-key")`
+
+  ✅ Only flag if a **literal value** is present such as:
+
+  ```python
+  STRIPE_KEY = "sk_live_51J9xk3nT7yY9z3bYxxxxxxxxxxxxxxxxxxxxx"
 
   ✅ Each key maps to a dictionary:
   - **KEY** = relative file path with filename (e.g., `"./src/utils/auth.js"`)
@@ -24,27 +38,36 @@ review_template: |
   - `short_description`: A short summary of the issue in 150 words atleast
   - `bad_practice`: Not more than 100 words
   - `vulnerable_code`: Not more than 100 words
-  - `suggested_fix`: A recommended fix or mitigation. For docstring issues, generate a valid docstring in `/** ... */` format
+  - `suggested_fix`: A recommended fix or mitigation in 10 to 100 words.
   - `vulnerable_code`: The code that introduces the vulnerability
-  - `patched_code`: The code after the vulnerability has been mitigated or fixed
+  - `patched_code`: The code after the vulnerability has been mitigated or fixed — **must be a concrete code snippet** (see Good_practice requirements below)
   - `owasp_2017`: OWASP 2017 category (if applicable)
   - `owasp_2021`: OWASP 2021 category (if applicable)
 
+  ✅ IMPORTANT: Good_practice / patched_code requirements
+  - The `patched_code` (and any `good_practice` field) **must** contain the actual fixed code snippet that replaces `vulnerable_code`.
+  - Do **not** provide theoretical descriptions or high-level guidance in `patched_code` — it should be ready-to-paste code (max 10 lines OR 100 words).
+  - If multiple files require fixes, provide a patched snippet per file and indicate clearly which snippet maps to which `vulnerable_code`.
+
   ✅ NEW: For `owasp_security` issues (VAPT-style), each issue object **must also** include these additional fields:
   - `reproduction_steps`: Ordered list of short steps required to reproduce the issue (array of strings). Each step should be concise and actionable.
-  - `medium_vapt_summary`: A short VAPT-style summary (one paragraph, ~40-80 words) suitable for medium-level reporting channels.
+  - `medium_vapt_summary`: A short VAPT-style summary (one paragraph, ~40-80 words) suitable for medium-level reporting channels. Summary must start with as `During security Assessment for` .
   - `impact`: Array of exactly 5 unique impact bullets (each a short sentence). Example: ["Unauthorized data exposure", "Account takeover risk", ...]
   - `remediation`: Array of exactly 5 unique remediation bullets (each a short sentence). Example: ["Use parameterized queries", "Validate input on server-side", ...]
-  - `references`: Array of 5 unique reference links or identifiers (full URLs preferred). Example: ["https://owasp.org/...", "CVE-2024-XXXXX", ...]
+  - `references`: Array of 5 unique working reference links or identifiers (full URLs preferred). Example: ["https://owasp.org/...", "CVE-2024-XXXXX", ...]
+      - **DO NOT** use `example.com`. Pick working, reputable references — prefer these domains when relevant:
+      - https://www.securecodewarrior.com/
+      - https://portswigger.net/
+      - https://cwe.mitre.org/
+      - https://www.acunetix.com/
+      - https://attack.mitre.org/
+    - Example `references` item (acceptable): `"https://portswigger.net/web-security/csrf"` (must be a working URL).
   - These fields must appear in the JSON exactly as named and must be non-empty arrays (where stated).
-  
-  ✅ For `docstring`, use this pattern for suggested_fix:
-  - Return a proper structured docstring using `/** ... */` syntax with tags like `@param`, `@returns`, and a brief description with at least 100 words.
 
   ✅ For `smelly_code`, include:
   - `suggested_fix`: Brief description of the issue and why it's problematic
   - `bad_practice`: The problematic code block
-  - `good_practice`: The corrected version of the code block
+  - `good_practice`: The corrected version of the code block — **must be a concrete code snippet** (no theory), limited to 10 lines or 100 words
 
   ✅ For `owasp_security`, detect **all OWASP Top 10 vulnerabilities**, including but not limited to:
   - SQL Injection
@@ -52,6 +75,7 @@ review_template: |
   - Path Traversal  via `include`, `file_get_contents`, `fopen`,`@chmod($this->url, $this->filePermission);` etc.
   - Cross-Site Scripting (XSS)
   - Insecure ECB Mode Encryption
+  - Unauthenticated API call without any Authorization Headr (eg. without JWT Token)
   - Information Exposure - Server Error Message
   - XML External Entity (XXE) Injection
   - Broken Authentication
@@ -121,7 +145,7 @@ review_template: |
   - `short_description`
   - `suggested_fix` (how to mitigate/remove the payload)
   - `bad_practice` (the detected malicious code)
-  - `good_practice` (a cleaned-up or safe alternative, or suggest removal)
+  - `good_practice` (cleaned-up or removed code; must be concrete code or removal instruction)
 
   ✅ Before returning output:
   - Ensure the entire response is enclosed within `{}` braces
@@ -146,13 +170,6 @@ review_template: |
   - Only flag vulnerabilities if user-controlled input flows unsanitized to a dangerous sink (e.g., SQL query, DOM injection, shell execution, HTTP request, file path).
   - Avoid static, harmless patterns or internal config strings.
 
-  ✅ Docstring Detection:
-  - Detect classes, methods, or functions missing proper docstrings.
-  - Ignore inline comments or block comments not placed directly after `def` or `class`.
-  - A valid docstring must:
-  - Be in `"""` or `'''` format
-  - Start immediately after the `def` or `class` line
-  - Include a purpose, and (optionally) `@param`, `@returns`, or description tags
 
   🔒 **ENHANCED OWASP MAPPING REQUIREMENTS:**
 
@@ -226,16 +243,7 @@ review_template: |
   }
       ]
     },
-    "docstring": {
-      "./src/auth.js": [
-        {
-         "short_description": "Missing docstring for method 'process_filter'.",
-         "suggested_fix": "\"\"\"\nProcesses input filters.\n\n@param filter: The filter input object\n@returns: True if valid, else False\n\"\"\"",
-         "bad_practice": "def process_filter(filter):\n    return filter is not None",
-         "good_practice": "def process_filter(filter):\n    \"\"\"\n    Processes input filters.\n\n    @param filter: The filter input object\n    @returns: True if valid, else False\n    \"\"\"\n    return filter is not None"
-          }
-      ]
-    },
+   
      "smelly_code": {
       "./src/main.js": [
         {
@@ -274,7 +282,7 @@ review_template: |
   "./config.js": [
     {
       "line_number": 5,
-      "vulnerability_type": "Hardcoded Firebase API Key",
+      "vulnerability_type": "Hardcoded Firebase API Key Value",
       "severity": "High",
       "short_description": "The code contains a hardcoded Firebase API key, which may allow unauthorized access to backend services.",
       "bad_practice": "const firebaseKey = \"AIzaSyA8Y9e...\";",
