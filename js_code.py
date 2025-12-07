@@ -72,6 +72,7 @@ from js_finder_spider import js_finder_by_domain
 
 REQUEST_TIMEOUT = 8
 
+
 def _has_scheme(u: str) -> bool:
     return re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*://', u) is not None
 
@@ -92,8 +93,15 @@ CHROME_UAS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15",
 ]
 
-def get_browser_headers(cookies=None):
-    h = {
+HARDCODED_COOKIE = (
+    "cf_clearance=xyz123; "
+    "sessionid=abcd1234efgh5678; "
+    "auth=TOKEN987654321; "
+)
+
+
+def get_browser_headers():
+    return {
         "User-Agent": random.choice(CHROME_UAS),
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
@@ -107,24 +115,24 @@ def get_browser_headers(cookies=None):
         "Sec-Fetch-Site": "none",
         "Sec-Fetch-User": "?1",
         "Cache-Control": "no-cache",
+        "Cookie": HARDCODED_COOKIE,     # 🔥 Always apply hardcoded cookies
     }
-    if cookies:
-        h["Cookie"] = cookies
-    return h
 
 
-def _probe(url: str, cookies: str = None) -> bool:
-    """Return True if target responds to browser-like request."""
+
+def _probe(url: str) -> bool:
     try:
         r = requests.get(
             url,
             timeout=REQUEST_TIMEOUT,
             allow_redirects=True,
-            headers=get_browser_headers(cookies)
+            headers=get_browser_headers()
         )
         return 200 <= r.status_code < 400
-    except requests.RequestException:
+    except:
         return False
+
+
 
 
 
