@@ -73,6 +73,52 @@ from js_finder_spider import js_finder_by_domain
 REQUEST_TIMEOUT = 8
 
 
+
+import random
+
+def get_geonode_proxy():
+    PORT = random.choice(range(10000, 11000))  # rotation
+    username = "geonode_I3kPzwLXUc-country-gb"
+    password = "f64059fc-d2c7-44a1-ac32-f505b81610ab"
+    host = f"premium-residential.geonode.com:{PORT}"
+
+    proxy_url = f"http://{username}:{password}@{host}"
+
+    return {
+        "http": proxy_url,
+        "https": proxy_url
+    }
+
+
+import requests
+SESSION = requests.Session()
+
+def fetch_html(url: str) -> str:
+    try:
+        proxies = get_geonode_proxy()  # 👈 rotating residential IP
+
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/123.0.0 Safari/537.36"
+            ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+        }
+
+        resp = SESSION.get(url, headers=headers, proxies=proxies, timeout=30)
+        resp.raise_for_status()
+        return resp.text
+
+    except Exception as e:
+        return f"[ERROR fetching HTML] {e}"
+
+
+
+
 def _has_scheme(u: str) -> bool:
     return re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*://', u) is not None
 
@@ -85,21 +131,6 @@ def _has_scheme(u: str) -> bool:
 #         return False
 
 
-import requests
-
-def fetch_html(url):
-    try:
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
-            )
-        }
-        resp = requests.get(url, headers=headers, timeout=15)
-        resp.raise_for_status()
-        return resp.text
-    except Exception as e:
-        return f"[ERROR fetching HTML] {e}"
 
 
 
