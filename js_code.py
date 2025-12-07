@@ -75,13 +75,58 @@ REQUEST_TIMEOUT = 8
 def _has_scheme(u: str) -> bool:
     return re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*://', u) is not None
 
-def _probe(url: str) -> bool:
-    """Return True if target is reachable (2xx/3xx considered OK)."""
+# def _probe(url: str) -> bool:
+#     """Return True if target is reachable (2xx/3xx considered OK)."""
+#     try:
+#         r = requests.get(url, timeout=REQUEST_TIMEOUT, allow_redirects=True)
+#         return 200 <= r.status_code < 400
+#     except requests.RequestException:
+#         return False
+
+
+import random
+
+CHROME_UAS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3 Safari/605.1.15",
+]
+
+def get_browser_headers(cookies=None):
+    h = {
+        "User-Agent": random.choice(CHROME_UAS),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://google.com/",
+        "Connection": "keep-alive",
+        "DNT": "1",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Cache-Control": "no-cache",
+    }
+    if cookies:
+        h["Cookie"] = cookies
+    return h
+
+
+def _probe(url: str, cookies: str = None) -> bool:
+    """Return True if target responds to browser-like request."""
     try:
-        r = requests.get(url, timeout=REQUEST_TIMEOUT, allow_redirects=True)
+        r = requests.get(
+            url,
+            timeout=REQUEST_TIMEOUT,
+            allow_redirects=True,
+            headers=get_browser_headers(cookies)
+        )
         return 200 <= r.status_code < 400
     except requests.RequestException:
         return False
+
+
 
 def normalize_url(user_input: str) -> str:
     """
