@@ -85,6 +85,25 @@ def _has_scheme(u: str) -> bool:
 #         return False
 
 
+import requests
+
+def fetch_html(url):
+    try:
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+            )
+        }
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
+        return resp.text
+    except Exception as e:
+        return f"[ERROR fetching HTML] {e}"
+
+
+
+
 import random
 
 CHROME_UAS = [
@@ -220,6 +239,13 @@ def main():
     url = normalize_url(raw_input_url)
 
     print(f"\n🔍 Crawling: {url}\n")
+
+
+    html_content = fetch_html(url)
+    print("\n📄 FULL HTML CONTENT BELOW:\n")
+    print(html_content)
+    print("\n---------- END OF HTML ----------\n")
+
     js_urls = js_finder_by_domain(url, workers=24, max_depth=5)
     print(f"✅ Found {len(js_urls)} JS URLs")
 
