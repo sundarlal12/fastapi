@@ -72,7 +72,7 @@ from js_finder_spider import js_finder_by_domain
 
 REQUEST_TIMEOUT = 8
 
-
+#### issue residentail proxy issue for cloudfalre bot bloackge###
 
 import random
 
