@@ -1,0 +1,902 @@
+[
+  {
+    "attempt": 10,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: yzyezunn.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.937",
+    "end_time": "04:32:49.858"
+  },
+  {
+    "attempt": 12,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: efxtghcb.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.952",
+    "end_time": "04:32:49.861"
+  },
+  {
+    "attempt": 20,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: znryecug.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.050",
+    "end_time": "04:32:49.862"
+  },
+  {
+    "attempt": 13,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: oddbajwm.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.956",
+    "end_time": "04:32:49.863"
+  },
+  {
+    "attempt": 2,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: zvrtytyv.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.924",
+    "end_time": "04:32:49.870"
+  },
+  {
+    "attempt": 15,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ubhshhwb.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.982",
+    "end_time": "04:32:49.875"
+  },
+  {
+    "attempt": 3,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: graukjcf.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.924",
+    "end_time": "04:32:49.891"
+  },
+  {
+    "attempt": 5,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: lhztxvwn.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.926",
+    "end_time": "04:32:50.043"
+  },
+  {
+    "attempt": 9,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: nxpaemlb.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.931",
+    "end_time": "04:32:50.268"
+  },
+  {
+    "attempt": 21,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: zjjimrfm.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.858",
+    "end_time": "04:32:50.486"
+  },
+  {
+    "attempt": 24,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: jvbudshm.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.863",
+    "end_time": "04:32:50.512"
+  },
+  {
+    "attempt": 23,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: hnfxugsu.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.862",
+    "end_time": "04:32:50.536"
+  },
+  {
+    "attempt": 22,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: zqiqazdt.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.861",
+    "end_time": "04:32:50.537"
+  },
+  {
+    "attempt": 27,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ktafcjiq.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.891",
+    "end_time": "04:32:50.540"
+  },
+  {
+    "attempt": 25,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ttfcncpg.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.870",
+    "end_time": "04:32:50.557"
+  },
+  {
+    "attempt": 28,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: nkbaepja.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.043",
+    "end_time": "04:32:50.705"
+  },
+  {
+    "attempt": 18,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: berrxjni.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.022",
+    "end_time": "04:32:50.846"
+  },
+  {
+    "attempt": 29,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ixecgifa.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.268",
+    "end_time": "04:32:50.888"
+  },
+  {
+    "attempt": 31,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: wlscgdoa.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.512",
+    "end_time": "04:32:51.166"
+  },
+  {
+    "attempt": 30,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: uwrweufr.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.486",
+    "end_time": "04:32:51.167"
+  },
+  {
+    "attempt": 35,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: prheqfff.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.557",
+    "end_time": "04:32:51.176"
+  },
+  {
+    "attempt": 32,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: wpoceoqf.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.536",
+    "end_time": "04:32:51.185"
+  },
+  {
+    "attempt": 33,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: drqoklgj.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.538",
+    "end_time": "04:32:51.217"
+  },
+  {
+    "attempt": 19,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ybxnzath.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.027",
+    "end_time": "04:32:51.238"
+  },
+  {
+    "attempt": 11,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: endkvqrf.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.945",
+    "end_time": "04:32:51.242"
+  },
+  {
+    "attempt": 34,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: jrmzhiax.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.541",
+    "end_time": "04:32:51.256"
+  },
+  {
+    "attempt": 36,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: dqcforhu.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.705",
+    "end_time": "04:32:51.358"
+  },
+  {
+    "attempt": 38,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: dqsekxnb.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.888",
+    "end_time": "04:32:51.531"
+  },
+  {
+    "attempt": 39,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: imgkoaui.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.166",
+    "end_time": "04:32:51.812"
+  },
+  {
+    "attempt": 40,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: glzuigct.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.167",
+    "end_time": "04:32:51.837"
+  },
+  {
+    "attempt": 42,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: drqokdho.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.185",
+    "end_time": "04:32:51.860"
+  },
+  {
+    "attempt": 43,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: kxgnkpdl.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.217",
+    "end_time": "04:32:51.869"
+  },
+  {
+    "attempt": 45,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ogujwfgh.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.243",
+    "end_time": "04:32:51.946"
+  },
+  {
+    "attempt": 44,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: tkrhtsdc.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.238",
+    "end_time": "04:32:51.951"
+  },
+  {
+    "attempt": 46,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: wmbvcvbj.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.257",
+    "end_time": "04:32:51.958"
+  },
+  {
+    "attempt": 47,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: peatenso.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.358",
+    "end_time": "04:32:51.971"
+  },
+  {
+    "attempt": 48,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: odnlgwzb.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.531",
+    "end_time": "04:32:52.203"
+  },
+  {
+    "attempt": 16,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: pblhfdll.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.997",
+    "end_time": "04:32:52.261"
+  },
+  {
+    "attempt": 8,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: kwpsbjrp.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.930",
+    "end_time": "04:32:52.262"
+  },
+  {
+    "attempt": 14,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: kdnscufp.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.963",
+    "end_time": "04:32:52.262"
+  },
+  {
+    "attempt": 6,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ldztgmnn.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.928",
+    "end_time": "04:32:52.267"
+  },
+  {
+    "attempt": 4,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: cmofsodc.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.925",
+    "end_time": "04:32:52.270"
+  },
+  {
+    "attempt": 49,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: hrbwgxbc.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.812",
+    "end_time": "04:32:52.437"
+  },
+  {
+    "attempt": 50,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: nzytvtxn.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.837",
+    "end_time": "04:32:52.487"
+  },
+  {
+    "attempt": 52,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ioxmmzez.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.869",
+    "end_time": "04:32:52.501"
+  },
+  {
+    "attempt": 51,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: zeewnxxf.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.860",
+    "end_time": "04:32:52.506"
+  },
+  {
+    "attempt": 55,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: vrnndsxi.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.958",
+    "end_time": "04:32:52.632"
+  },
+  {
+    "attempt": 54,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: dqystmpe.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.952",
+    "end_time": "04:32:52.640"
+  },
+  {
+    "attempt": 53,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: zdnqumrk.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.946",
+    "end_time": "04:32:52.640"
+  },
+  {
+    "attempt": 56,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: fvyfzwif.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.972",
+    "end_time": "04:32:52.643"
+  },
+  {
+    "attempt": 61,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: rkyuuffl.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.267",
+    "end_time": "04:32:52.991"
+  },
+  {
+    "attempt": 59,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: yzpapfzi.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.263",
+    "end_time": "04:32:53.004"
+  },
+  {
+    "attempt": 60,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ohnygdwg.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.263",
+    "end_time": "04:32:53.007"
+  },
+  {
+    "attempt": 62,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: mebixkkz.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.270",
+    "end_time": "04:32:53.011"
+  },
+  {
+    "attempt": 58,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: erfdhzep.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.262",
+    "end_time": "04:32:53.015"
+  },
+  {
+    "attempt": 66,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ncbiwxof.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.506",
+    "end_time": "04:32:53.133"
+  },
+  {
+    "attempt": 64,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: yallbxad.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.487",
+    "end_time": "04:32:53.163"
+  },
+  {
+    "attempt": 65,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: jszmjxys.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.501",
+    "end_time": "04:32:53.205"
+  },
+  {
+    "attempt": 17,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: yvmwiilv.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.013",
+    "end_time": "04:32:53.254"
+  },
+  {
+    "attempt": 37,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: lwpylwxd.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:50.846",
+    "end_time": "04:32:53.256"
+  },
+  {
+    "attempt": 26,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: yjytuzvo.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:49.875",
+    "end_time": "04:32:53.258"
+  },
+  {
+    "attempt": 1,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: qaatlgss.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.924",
+    "end_time": "04:32:53.260"
+  },
+  {
+    "attempt": 7,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: yrlsblbx.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:48.930",
+    "end_time": "04:32:53.270"
+  },
+  {
+    "attempt": 63,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: tpwevlvl.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.437",
+    "end_time": "04:32:53.322"
+  },
+  {
+    "attempt": 67,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: lpqunvsj.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.632",
+    "end_time": "04:32:53.325"
+  },
+  {
+    "attempt": 70,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: kflvxlxy.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.643",
+    "end_time": "04:32:53.328"
+  },
+  {
+    "attempt": 41,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: laiqzxoj.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:51.176",
+    "end_time": "04:32:53.339"
+  },
+  {
+    "attempt": 57,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ozrxsouc.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.203",
+    "end_time": "04:32:53.339"
+  },
+  {
+    "attempt": 68,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: qplvgzfu.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.640",
+    "end_time": "04:32:53.355"
+  },
+  {
+    "attempt": 69,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: zmpbkenr.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.640",
+    "end_time": "04:32:53.379"
+  },
+  {
+    "attempt": 71,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: hdslyxua.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:52.991",
+    "end_time": "04:32:53.676"
+  },
+  {
+    "attempt": 72,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: puibafgc.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.004",
+    "end_time": "04:32:53.683"
+  },
+  {
+    "attempt": 73,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: sfdnowrj.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.007",
+    "end_time": "04:32:53.697"
+  },
+  {
+    "attempt": 75,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ofbfmkqx.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.015",
+    "end_time": "04:32:53.712"
+  },
+  {
+    "attempt": 74,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: xvufhrrx.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.011",
+    "end_time": "04:32:53.712"
+  },
+  {
+    "attempt": 76,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: nedwtgkk.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.133",
+    "end_time": "04:32:53.801"
+  },
+  {
+    "attempt": 77,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: nzlfyany.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.163",
+    "end_time": "04:32:53.810"
+  },
+  {
+    "attempt": 78,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: uzlqlrfo.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.205",
+    "end_time": "04:32:53.909"
+  },
+  {
+    "attempt": 79,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: yraogkiy.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.255",
+    "end_time": "04:32:53.932"
+  },
+  {
+    "attempt": 80,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: kqcvdzoy.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.256",
+    "end_time": "04:32:53.963"
+  },
+  {
+    "attempt": 81,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: itthsfsn.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.259",
+    "end_time": "04:32:53.994"
+  },
+  {
+    "attempt": 82,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: pgygnkzn.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.260",
+    "end_time": "04:32:54.011"
+  },
+  {
+    "attempt": 83,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: aknkmffb.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.271",
+    "end_time": "04:32:54.016"
+  },
+  {
+    "attempt": 88,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: npuevgkv.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.345",
+    "end_time": "04:32:54.023"
+  },
+  {
+    "attempt": 86,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: kumijykp.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.329",
+    "end_time": "04:32:54.025"
+  },
+  {
+    "attempt": 84,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: jrlafuql.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.322",
+    "end_time": "04:32:54.030"
+  },
+  {
+    "attempt": 87,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: wtrmhima.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.340",
+    "end_time": "04:32:54.071"
+  },
+  {
+    "attempt": 90,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: bzimrgsj.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.383",
+    "end_time": "04:32:54.093"
+  },
+  {
+    "attempt": 89,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: mtpzroza.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.355",
+    "end_time": "04:32:54.100"
+  },
+  {
+    "attempt": 85,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: eodmrslc.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.326",
+    "end_time": "04:32:54.259"
+  },
+  {
+    "attempt": 92,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: pujezayd.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.683",
+    "end_time": "04:32:54.321"
+  },
+  {
+    "attempt": 91,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: kfljokjo.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.677",
+    "end_time": "04:32:54.341"
+  },
+  {
+    "attempt": 93,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: ictxhfjh.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.697",
+    "end_time": "04:32:54.380"
+  },
+  {
+    "attempt": 94,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: zaqvjzjy.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.712",
+    "end_time": "04:32:54.394"
+  },
+  {
+    "attempt": 95,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: qluofort.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.712",
+    "end_time": "04:32:54.411"
+  },
+  {
+    "attempt": 97,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: zeahtrpm.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.810",
+    "end_time": "04:32:54.438"
+  },
+  {
+    "attempt": 96,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: aewtkunw.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.801",
+    "end_time": "04:32:54.499"
+  },
+  {
+    "attempt": 98,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: xdzktiqg.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.909",
+    "end_time": "04:32:54.587"
+  },
+  {
+    "attempt": 99,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: wbwsdyky.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.932",
+    "end_time": "04:32:54.616"
+  },
+  {
+    "attempt": 100,
+    "success": true,
+    "returncode": 0,
+    "output": "Using random domain: vyhwedcg.fun\nStatus Code: 200\nResponse: github.com/ssl/ezXSS\n",
+    "error": "",
+    "start_time": "04:32:53.964",
+    "end_time": "04:32:54.622"
+  }
+]

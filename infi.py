@@ -21,7 +21,7 @@ def run_ezxss(attempt_number):
     print(f"Starting attempt {attempt_number}...")
     try:
         # Run the shell script. Using check=True will raise an error if the script fails.
-        result = subprocess.run(["./ezxss.sh"], capture_output=True, text=True, check=True)
+        result = subprocess.run(["./ezxss.py"], capture_output=True, text=True, check=True)
         print(f"✓ Attempt {attempt_number} completed successfully.")
         # Optional: print or log the command's output/error
         # if result.stdout:
